@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Clinical Patient Assessment Report - NeuroCare{% endblock %}
+
+{% block content %}
+<div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <a href="/" class="btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Run New Patient Assessment
+    </a>
+    <button onclick="window.print()" class="btn-primary" style="padding: 0.65rem 1.5rem; font-size: 0.95rem;">
+        <i class="fa-solid fa-print"></i> Print Official Medical Report (PDF)
+    </button>
+</div>
+
+<!-- Printable Medical Report Container -->
+<div class="printable-report">
+    
+    <!-- Report Top Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--accent-teal); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+        <div>
+            <h1 style="font-family: 'Outfit', sans-serif; font-size: 2rem; color: var(--text-primary); margin-bottom: 0.25rem;">
+                <i class="fa-solid fa-heart-pulse" style="color: var(--accent-teal);"></i> NeuroCare Clinical Assessment Report
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                Multimodal AI Ensemble System | Cognitive, EEG Signal & Speech Biomarker Analysis
+            </p>
+        </div>
+        <div style="text-align: right; font-size: 0.85rem; color: var(--text-secondary);">
+            <div><strong>Report ID:</strong> #NC-2026-{% if report_id %}{{ report_id }}{% else %}001{% endif %}</div>
+            <div><strong>Evaluator:</strong> {{ session.get('user').get('username') if session.get('user') else 'Attending Clinician' }}</div>
+            <div><strong>Date:</strong> {{ res.created_at if res.created_at else '31 July 2026' }}</div>
+        </div>
+    </div>
+
+    <!-- Patient Profile Header Card -->
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.75rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; font-size: 0.92rem;">
+            <div>
+                <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Patient Name</span>
+                <div style="font-weight: 700; font-size: 1.15rem; color: var(--text-primary);">{{ patient_name }}</div>
+            </div>
+            <div>
+                <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Age / Gender</span>
+                <div style="font-weight: 600; color: var(--text-primary);">{{ cog_input.Age if cog_input else 72 }} Years / {{ cog_input.Gender if cog_input else 'F' }}</div>
+            </div>
+            <div>
+                <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Education</span>
+                <div style="font-weight: 600; color: var(--text-primary);">{{ cog_input.EDUC if cog_input else 14 }} Years Formal</div>
+            </div>
+            <div>
+                <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">MMSE / CDR Score</span>
+                <div style="font-weight: 600; color: var(--accent-teal);">MMSE: {{ cog_input.MMSE if cog_input else 27 }}/30 | CDR: {{ cog_input.CDR if cog_input else 0.0 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overall Assessment Summary Banner -->
+    <div class="glass-panel report-header-card">
+        {% if res.is_alzheimers %}
+            <div class="status-badge badge-alzheimer">
+                <i class="fa-solid fa-triangle-exclamation"></i> DIAGNOSIS: {{ res.diagnosis }}
+            </div>
+        {% else %}
+            <div class="status-badge badge-healthy">
+                <i class="fa-solid fa-circle-check"></i> DIAGNOSIS: {{ res.diagnosis }}
+            </div>
+        {% endif %}
+
+        <h2 style="font-size: 2.2rem; font-family: 'Outfit', sans-serif; margin-bottom: 0.35rem;">
+            Multimodal Alzheimer's Risk Index: {{ res.final_probability_pct }}%
+        </h2>
+        <p style="color: var(--text-secondary);">Ensemble System Confidence: <strong>{{ res.confidence_score }}%</strong></p>
+
+        <!-- Report Summary Stats -->
+        <div class="report-summary-grid">
+            <div class="summary-item">
+                <div class="summary-label">Risk Category</div>
+                {% if res.risk_level == 'High' %}
+                    <div class="summary-value" style="color: var(--accent-rose);">High Risk</div>
+                {% elif res.risk_level == 'Moderate' %}
+                    <div class="summary-value" style="color: var(--accent-amber);">Moderate Risk</div>
+                {% else %}
+                    <div class="summary-value" style="color: var(--accent-emerald);">Low Risk</div>
+                {% endif %}
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Ensemble Model Strategy</div>
+                <div class="summary-value" style="color: var(--accent-teal); font-size: 1.25rem;">Optimal Weighted Average</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Clinical Action Status</div>
+                {% if res.is_alzheimers %}
+                    <div class="summary-value" style="color: var(--accent-rose); font-size: 1.2rem;">Neurology Consult Recommended</div>
+                {% else %}
+                    <div class="summary-value" style="color: var(--accent-emerald); font-size: 1.2rem;">Annual Routine Wellness Check</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modality Breakdown -->
+    <h3 style="font-family: 'Outfit', sans-serif; margin-bottom: 1rem;">
+        <i class="fa-solid fa-layer-group" style="color: var(--accent-teal);"></i> Diagnostic Modality Breakdown
+    </h3>
+
+    <div class="categories-grid">
+        <!-- Cognitive Card -->
+        <div class="glass-panel category-card">
+            <div class="category-header">
+                <div class="category-title">
+                    <i class="fa-solid fa-brain" style="color: var(--accent-indigo);"></i>
+                    <span>Cognitive & Clinical Metrics</span>
+                </div>
+                <span style="color: var(--accent-indigo); font-weight: bold;">{{ (res.individual_probabilities.cognitive * 100)|round(1) }}% Risk</span>
+            </div>
+            <div class="meter-bar">
+                <div class="meter-fill" style="width: {{ (res.individual_probabilities.cognitive * 100)|round(1) }}%; background: var(--gradient-primary);"></div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Evaluates patient age, education, MMSE score, and daily memory rating.
+            </p>
+        </div>
+
+        <!-- EEG Card -->
+        <div class="glass-panel category-card">
+            <div class="category-header">
+                <div class="category-title">
+                    <i class="fa-solid fa-wave-square" style="color: var(--accent-teal);"></i>
+                    <span>16-Channel EEG Signal Analysis</span>
+                </div>
+                <span style="color: var(--accent-teal); font-weight: bold;">{{ (res.individual_probabilities.eeg * 100)|round(1) }}% Risk</span>
+            </div>
+            <div class="meter-bar">
+                <div class="meter-fill" style="width: {{ (res.individual_probabilities.eeg * 100)|round(1) }}%; background: linear-gradient(135deg, #0ea5e9, #6366f1);"></div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Monitors electroencephalogram power spectra ($\alpha, \beta, \theta, \delta$) and neural complexity.
+            </p>
+        </div>
+
+        <!-- Speech Card -->
+        <div class="glass-panel category-card">
+            <div class="category-header">
+                <div class="category-title">
+                    <i class="fa-solid fa-microphone-lines" style="color: var(--accent-emerald);"></i>
+                    <span>Voice Acoustic Biomarkers</span>
+                </div>
+                <span style="color: var(--accent-emerald); font-weight: bold;">{{ (res.individual_probabilities.speech * 100)|round(1) }}% Risk</span>
+            </div>
+            <div class="meter-bar">
+                <div class="meter-fill" style="width: {{ (res.individual_probabilities.speech * 100)|round(1) }}%; background: var(--gradient-success);"></div>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Analyzes speech pauses, MFCC acoustic coefficients, pitch stability, and articulation pace.
+            </p>
+        </div>
+    </div>
+
+    <!-- Clinical Precautions & Safety Measures Section -->
+    <div class="glass-panel" style="padding: 1.75rem; margin-bottom: 1.75rem; border-left: 4px solid var(--accent-amber);">
+        <h3 style="font-family: 'Outfit', sans-serif; color: var(--accent-amber); margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Immediate Patient Safety Precautions & Risk Mitigations
+        </h3>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; color: var(--text-secondary); font-size: 0.92rem;">
+            <li style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <i class="fa-solid fa-pills" style="color: var(--accent-amber); margin-top: 0.2rem;"></i>
+                <div>
+                    <strong style="color: var(--text-primary);">Medication Management & Supervision:</strong>
+                    <span>Use a pill organizer box or pill dispenser to ensure daily prescription medications are taken correctly without missed or double doses.</span>
+                </div>
+            </li>
+            <li style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <i class="fa-solid fa-shield-halved" style="color: var(--accent-amber); margin-top: 0.2rem;"></i>
+                <div>
+                    <strong style="color: var(--text-primary);">Home Hazard & Fall Prevention:</strong>
+                    <span>Ensure living areas have bright night lights, slip-resistant floor mats, secure stair handrails, and remove loose rugs or clutter to prevent fall injuries.</span>
+                </div>
+            </li>
+            <li style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <i class="fa-solid fa-address-book" style="color: var(--accent-amber); margin-top: 0.2rem;"></i>
+                <div>
+                    <strong style="color: var(--text-primary);">Emergency Contacts & Wandering Prevention:</strong>
+                    <span>Keep primary emergency contact numbers clearly visible near home phones, and consider an identification bracelet or GPS tracker for patients prone to disorientation.</span>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Further Treatment & Clinical Next Steps Section -->
+    <div class="glass-panel" style="padding: 1.75rem; margin-bottom: 2rem; border-left: 4px solid var(--accent-teal);">
+        <h3 style="font-family: 'Outfit', sans-serif; color: var(--accent-teal); margin-bottom: 1rem;">
+            <i class="fa-solid fa-notes-medical"></i> Further Treatment & Clinical Next Steps Protocol
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+            
+            <div style="background: rgba(10, 15, 29, 0.4); padding: 1.1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <div style="font-weight: 700; color: var(--accent-teal); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-microscope"></i> Step 1: Comprehensive Clinical Workup
+                </div>
+                <ul style="font-size: 0.88rem; color: var(--text-secondary); padding-left: 1.2rem;">
+                    <li>Schedule a formal consultation with a certified Neurologist or Geriatric Specialist.</li>
+                    <li>High-resolution Structural Brain MRI or Amyloid PET Scan to evaluate hippocampal volume.</li>
+                    <li>Plasma/Blood Biomarker Panel (p-tau217, ApoE4 gene testing) and Complete Metabolic Panel.</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(10, 15, 29, 0.4); padding: 1.1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <div style="font-weight: 700; color: var(--accent-indigo); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-prescription-bottle-medical"></i> Step 2: Therapeutic & Medical Options
+                </div>
+                <ul style="font-size: 0.88rem; color: var(--text-secondary); padding-left: 1.2rem;">
+                    <li>Evaluation for Cholinesterase Inhibitors (e.g. Donepezil, Rivastigmine) for mild-to-moderate symptoms.</li>
+                    <li>Memantine consultation for NMDA receptor modulation in moderate stages.</li>
+                    <li>Discussion regarding novel disease-modifying monoclonal antibody therapies where clinically appropriate.</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(10, 15, 29, 0.4); padding: 1.1rem; border-radius: 12px; border: 1px solid var(--border-color); grid-column: 1 / -1;">
+                <div style="font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-heart-pulse"></i> Step 3: Non-Pharmacological & Brain Health Care Plan
+                </div>
+                <ul style="font-size: 0.88rem; color: var(--text-secondary); padding-left: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.5rem;">
+                    <li><strong>Cognitive Stimulation:</strong> Guided Memory Exercises, Reading, Social Group Interactions.</li>
+                    <li><strong>Physical Exercise:</strong> 150 mins/week of moderate aerobic exercise (brisk walking, swimming).</li>
+                    <li><strong>MIND / Mediterranean Diet:</strong> Rich in antioxidants, omega-3 fatty acids, leafy greens, and nuts.</li>
+                    <li><strong>Sleep Hygiene:</strong> 7-8 hours of uninterrupted night sleep to support brain glymphatic clearance.</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Official Report Footer Sign-off -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
+        <div>NeuroCare AI Cognitive Diagnostics | Confidential Medical Health Record</div>
+        <div>Authorized Medical Signature: _______________________</div>
+    </div>
+
+</div>
+{% endblock %}

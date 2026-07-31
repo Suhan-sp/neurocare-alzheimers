@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}My Saved Reports - NeuroCare Portal{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 class="hero-title" style="text-align: left; font-size: 2.2rem;">My Patient Reports History</h1>
+    <p style="color: var(--text-secondary);">View and track all cognitive assessment reports generated under your account.</p>
+</div>
+
+{% if reports %}
+    <div class="glass-panel" style="padding: 1.5rem; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.92rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <th style="padding: 0.85rem;">Date</th>
+                    <th style="padding: 0.85rem;">Patient Name</th>
+                    <th style="padding: 0.85rem;">Age / Gender</th>
+                    <th style="padding: 0.85rem;">Diagnosis</th>
+                    <th style="padding: 0.85rem;">Risk Index</th>
+                    <th style="padding: 0.85rem;">Risk Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; color: var(--text-muted);">{{ r.created_at }}</td>
+                        <td style="padding: 1rem; font-weight: 600;">{{ r.patient_name }}</td>
+                        <td style="padding: 1rem; color: var(--text-secondary);">{{ r.age }} yrs / {{ r.gender }}</td>
+                        <td style="padding: 1rem;">{{ r.diagnosis }}</td>
+                        <td style="padding: 1rem; font-weight: 700; color: var(--accent-teal);">{{ r.final_probability_pct }}%</td>
+                        <td style="padding: 1rem;">
+                            {% if r.risk_level == 'High' %}
+                                <span style="background: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">HIGH</span>
+                            {% elif r.risk_level == 'Moderate' %}
+                                <span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">MODERATE</span>
+                            {% else %}
+                                <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">LOW</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="glass-panel" style="padding: 3rem; text-align: center;">
+        <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+        <h3>No Reports Generated Yet</h3>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; margin-bottom: 1.5rem;">Take a new assessment to generate and save patient health reports.</p>
+        <a href="/" class="btn-primary" style="display: inline-flex; width: auto;">
+            <i class="fa-solid fa-clipboard-check"></i> Take Assessment Now
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

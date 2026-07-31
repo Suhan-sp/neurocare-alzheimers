@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NeuroCare - Alzheimer's Health Assessment Portal{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main CSS Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="/" class="brand-logo">
+            <div class="logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div class="brand-title">
+                <span>NeuroCare</span>
+                <span class="brand-sub">Cognitive Health Portal</span>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link"><i class="fa-solid fa-clipboard-check"></i> Take Assessment</a>
+            
+            {% if session.get('user') %}
+                <a href="/my-reports" class="nav-link"><i class="fa-solid fa-folder-user"></i> My Reports</a>
+                {% if session.get('user').get('role') == 'admin' %}
+                    <a href="/admin" class="nav-link" style="color: var(--accent-indigo); font-weight: 700;">
+                        <i class="fa-solid fa-user-shield"></i> Admin Dashboard
+                    </a>
+                {% endif %}
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.06); padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.88rem;">
+                    <i class="fa-solid fa-user-circle" style="color: var(--accent-teal);"></i>
+                    <span>{{ session.get('user').get('username') }}</span>
+                    <a href="/logout" style="color: var(--accent-rose); text-decoration: none; margin-left: 0.5rem; font-weight: 600;" title="Sign Out">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </a>
+                </div>
+            {% else %}
+                <a href="/login" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a>
+                <a href="/register" class="btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.88rem;">
+                    <i class="fa-solid fa-user-plus"></i> Register
+                </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 NeuroCare AI Patient Health Portal | Designed for Easy Patient & Clinical Assessment</p>
+    </footer>
+
+    <!-- Interactive JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

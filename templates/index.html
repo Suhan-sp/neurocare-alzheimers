@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Take Health Assessment - NeuroCare Portal{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <h1 class="hero-title">Cognitive Health & Alzheimer's Assessment</h1>
+    <p class="hero-subtitle">
+        Complete the simple 3-step assessment below to evaluate patient memory, brainwave patterns, and voice biomarkers.
+    </p>
+</div>
+
+<form action="/predict" method="POST" enctype="multipart/form-data">
+    <div class="input-grid">
+        
+        <!-- Step 1: Patient Profile & Memory Assessment -->
+        <div class="glass-panel" style="padding: 1.75rem;">
+            <div class="section-header">
+                <div class="section-icon"><i class="fa-solid fa-user-doctor"></i></div>
+                <div>
+                    <h3>1. Patient Information & Memory Check</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">General Demographics & Memory Rating</span>
+                </div>
+            </div>
+
+            <div class="form-group-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label class="form-label" for="PatientName">Patient Full Name / ID</label>
+                    <input type="text" id="PatientName" name="PatientName" class="form-input" placeholder="e.g. John Doe / PT-8401" value="Patient Assessment">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="Age">Age (Years)</label>
+                    <input type="number" id="Age" name="Age" class="form-input" placeholder="e.g. 72" min="40" max="105" value="72" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="Gender">Gender</label>
+                    <select id="Gender" name="Gender" class="form-select" required>
+                        <option value="F" selected>Female</option>
+                        <option value="M">Male</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="EDUC">Education (Years)</label>
+                    <input type="number" id="EDUC" name="EDUC" class="form-input" placeholder="e.g. 14" min="0" max="25" value="14" required>
+                    <span class="form-hint">Total years of formal education</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="FamilyHistory">Family History of Dementia</label>
+                    <select id="FamilyHistory" name="FamilyHistory" class="form-select">
+                        <option value="no" selected>No Known History</option>
+                        <option value="yes">Yes (Parent / Sibling)</option>
+                        <option value="unsure">Unsure</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="MMSE">Cognitive Test Score (0 - 30)</label>
+                    <input type="number" id="MMSE" name="MMSE" class="form-input" placeholder="24-30 = Normal, <24 = Impaired" min="0" max="30" value="27" required>
+                    <span class="form-hint">Standard MMSE score (Default: 27)</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="CDR">Daily Memory Impairment</label>
+                    <select id="CDR" name="CDR" class="form-select" required>
+                        <option value="0.0" selected>Normal / No Memory Loss</option>
+                        <option value="0.5">Slight / Mild Forgetfulness</option>
+                        <option value="1.0">Moderate Memory Impairment</option>
+                        <option value="2.0">Severe Memory Loss</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: EEG Brain Scan Upload -->
+        <div class="glass-panel" style="padding: 1.75rem;">
+            <div class="section-header">
+                <div class="section-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-teal);">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <div>
+                    <h3>2. EEG Brainwave File (Optional)</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">16-Channel EEG CSV or EDF Format</span>
+                </div>
+            </div>
+
+            <div class="file-dropzone" id="eegDropzone">
+                <div class="dropzone-icon"><i class="fa-solid fa-file-medical"></i></div>
+                <div class="dropzone-text">
+                    <strong>Click or Drag & Drop EEG Recording</strong><br>
+                    <span>Supports clinical .csv or .edf files</span>
+                </div>
+                <input type="file" id="eegFile" name="eegFile" accept=".csv,.edf" style="display: none;">
+                <div class="file-info-badge" id="eegFileInfo">No file attached (System uses baseline EEG if omitted)</div>
+            </div>
+
+            <div style="margin-top: 1.25rem; background: rgba(10, 15, 29, 0.4); padding: 0.9rem; border-radius: 10px; font-size: 0.85rem; color: var(--text-secondary); border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-circle-info" style="color: var(--accent-teal);"></i> 
+                If you have an EEG scan file from a neurologist, attach it here. If not, the system uses clinical population averages.
+            </div>
+        </div>
+
+        <!-- Step 3: Patient Voice & Speech Test -->
+        <div class="glass-panel" style="padding: 1.75rem;">
+            <div class="section-header">
+                <div class="section-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                </div>
+                <div>
+                    <h3>3. Patient Speech & Voice Sample</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Record Live Voice or Upload Audio File</span>
+                </div>
+            </div>
+
+            <div class="file-dropzone" id="speechDropzone">
+                <div class="dropzone-icon" style="color: var(--accent-emerald);"><i class="fa-solid fa-file-audio"></i></div>
+                <div class="dropzone-text">
+                    <strong>Click or Drag & Drop Voice WAV File</strong><br>
+                    <span>Supports WAV audio format</span>
+                </div>
+                <input type="file" id="speechFile" name="speechFile" accept=".wav" style="display: none;">
+                <div class="file-info-badge" id="speechFileInfo">No file attached</div>
+            </div>
+
+            <div class="mic-box">
+                <button type="button" class="btn-rec" id="recordBtn" title="Click to Start Recording">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+                <span id="recStatus" style="font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+                    Click microphone to record live audio.<br>
+                    <em style="color: var(--text-muted);">Suggested phrase: "Today is a sunny day and I feel good."</em>
+                </span>
+                <audio id="audioPreview" controls style="display: none; width: 100%; margin-top: 0.5rem;"></audio>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Submit Action Button -->
+    <div class="actions-bar">
+        <button type="submit" class="btn-primary">
+            <i class="fa-solid fa-notes-medical"></i> Generate Patient Health Assessment
+        </button>
+    </div>
+</form>
+{% endblock %}

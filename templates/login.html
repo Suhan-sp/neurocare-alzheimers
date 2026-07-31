@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - NeuroCare Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+    <div class="glass-panel" style="padding: 2.25rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="logo-icon" style="margin: 0 auto 1rem auto; width: 52px; height: 52px; font-size: 1.5rem;">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem;">Sign In to Portal</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.25rem;">Sign in to access patient assessments & save reports</p>
+        </div>
+
+        {% if msg %}
+            <div style="background: rgba(14, 165, 233, 0.15); border: 1px solid var(--accent-teal); color: #38bdf8; padding: 0.85rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-circle-info"></i> {{ msg }}
+            </div>
+        {% endif %}
+
+        {% if error %}
+            <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fb7185; padding: 0.85rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="/login" method="POST">
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="username">Username or Email</label>
+                <input type="text" id="username" name="username" class="form-input" placeholder="e.g. admin or doctor@clinic.com" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In to Portal
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">
+            Don't have an account? <a href="/register" style="color: var(--accent-teal); font-weight: 600; text-decoration: none;">Register New Account</a>
+        </div>
+
+        <div style="margin-top: 1.5rem; background: rgba(10, 15, 29, 0.4); padding: 0.85rem; border-radius: 8px; font-size: 0.82rem; color: var(--text-muted); border: 1px solid var(--border-color); text-align: center;">
+            <strong style="color: var(--text-secondary);">Admin Account:</strong> Username: <code>admin</code> | Password: <code>admin123</code>
+        </div>
+    </div>
+</div>
+{% endblock %}
