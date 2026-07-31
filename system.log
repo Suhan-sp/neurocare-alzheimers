@@ -738,3 +738,36 @@
 [2026-07-31 12:57:25] [INFO] [alzheimer_system]: Received patient assessment request...
 [2026-07-31 12:57:25] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
 [2026-07-31 12:57:25] [INFO] [alzheimer_system]: Patient report #8 saved to database for patient 'Patient4' by user ID 1
+[2026-07-31 13:16:56] [INFO] [alzheimer_system]: Database initialized successfully.
+[2026-07-31 13:16:56] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-07-31 13:16:56] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-07-31 13:16:56] [INFO] [alzheimer_system]: Starting NeuroCare Patient Portal & Admin Server on http://127.0.0.1:5000 ...
+[2026-07-31 13:17:03] [INFO] [alzheimer_system]: Received patient assessment request...
+[2026-07-31 13:17:03] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-07-31 13:17:03] [INFO] [alzheimer_system]: Patient report #9 saved to database for patient 'Patient Assessment' by user ID 1
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]:   STARTING COGNITIVE MODEL TRAINING PIPELINE    
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: Loading Cognitive Dataset from cognitive dataset/alzheimer.csv
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: Starting Cognitive preprocessing fit_transform...
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: Saved Cognitive preprocessor to saved_models\cognitive_preprocessor.pkl
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9677
+[2026-07-31 13:19:02] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-07-31 13:19:07] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.9491 | F1: 0.9465 | AUC: 0.9646
+[2026-07-31 13:19:07] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-07-31 13:19:08] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.9437 | F1: 0.9412 | AUC: 0.9621
+[2026-07-31 13:19:08] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-07-31 13:19:11] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9619
+[2026-07-31 13:19:11] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-07-31 13:19:13] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.9544 | F1: 0.9524 | AUC: 0.9626
+[2026-07-31 13:19:13] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'Logistic Regression' with ROC-AUC: 0.9677
+[2026-07-31 13:19:13] [INFO] [alzheimer_system]: Saved best ML model (Logistic Regression) to saved_models\best_cognitive_model.pkl
+[2026-07-31 13:19:14] [INFO] [alzheimer_system]: Generated SHAP explainability plots successfully.
+[2026-07-31 13:19:14] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 13:19:14] [INFO] [alzheimer_system]:   COGNITIVE TRAINING COMPLETE: Best = Logistic Regression
+[2026-07-31 13:19:14] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 13:19:29] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-07-31 13:19:29] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-07-31 13:19:29] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
