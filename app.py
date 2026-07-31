@@ -87,7 +87,7 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict_route():
-    """Handles patient submission, executes AI models, and saves report to database (Requires Login)."""
+    """Handles patient submission, executes AI models, and saves report to database."""
     if not session.get('user'):
         return redirect(url_for('login', msg="Please sign in to process patient assessments."))
 
@@ -132,8 +132,10 @@ def predict_route():
         speech_audio = None
         if 'speechFile' in request.files and request.files['speechFile'].filename != '':
             file = request.files['speechFile']
-            speech_audio = file.read()
-            logger.info("Read patient speech audio bytes.")
+            speech_file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(speech_file_path)
+            speech_audio = speech_file_path
+            logger.info(f"Saved patient speech audio file to {speech_file_path}")
 
         # Execute Prediction Pipeline
         results = predictor.predict_all(cog_dict, eeg_file=eeg_file_path, speech_audio=speech_audio)

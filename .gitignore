@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 static/uploads/*
 !static/uploads/.gitkeep
+EEG dataset/AD_all_patients.csv
+Speech dataset/Archive/*
