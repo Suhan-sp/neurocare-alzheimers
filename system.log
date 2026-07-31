@@ -726,3 +726,15 @@
 [2026-07-31 12:14:25] [INFO] [alzheimer_system]:   Server URL: http://127.0.0.1:5000               
 [2026-07-31 12:14:25] [INFO] [alzheimer_system]:   Local Network Access: http://0.0.0.0:5000       
 [2026-07-31 12:14:25] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 12:45:17] [INFO] [alzheimer_system]: Database initialized successfully.
+[2026-07-31 12:45:17] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-07-31 12:45:17] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-07-31 12:45:17] [INFO] [alzheimer_system]: Starting NeuroCare Patient Portal & Admin Server on http://127.0.0.1:5000 ...
+[2026-07-31 12:57:01] [INFO] [alzheimer_system]: Database initialized successfully.
+[2026-07-31 12:57:01] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-07-31 12:57:01] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-07-31 12:57:01] [INFO] [alzheimer_system]: Starting NeuroCare Patient Portal & Admin Server on http://127.0.0.1:5000 ...
+[2026-07-31 12:57:06] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-07-31 12:57:25] [INFO] [alzheimer_system]: Received patient assessment request...
+[2026-07-31 12:57:25] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-07-31 12:57:25] [INFO] [alzheimer_system]: Patient report #8 saved to database for patient 'Patient4' by user ID 1

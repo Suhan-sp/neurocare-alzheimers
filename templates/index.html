@@ -10,6 +10,12 @@
     </p>
 </div>
 
+{% if error %}
+    <div style="background: rgba(244, 63, 94, 0.2); border: 2px solid var(--accent-rose); color: #fb7185; padding: 1.25rem; border-radius: 12px; font-size: 1rem; margin-bottom: 1.5rem; text-align: center; max-width: 800px; margin: 0 auto 1.5rem auto;">
+        <i class="fa-solid fa-triangle-exclamation"></i> <strong>Assessment Error:</strong> {{ error }}
+    </div>
+{% endif %}
+
 <form action="/predict" method="POST" enctype="multipart/form-data">
     <div class="input-grid">
         
@@ -121,7 +127,7 @@
                     <strong>Click or Drag & Drop Voice WAV File</strong><br>
                     <span>Supports WAV audio format</span>
                 </div>
-                <input type="file" id="speechFile" name="speechFile" accept=".wav" style="display: none;">
+                <input type="file" id="speechFile" name="speechFile" accept=".wav,.webm,.ogg" style="display: none;">
                 <div class="file-info-badge" id="speechFileInfo">No file attached</div>
             </div>
 

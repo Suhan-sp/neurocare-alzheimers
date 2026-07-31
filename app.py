@@ -19,7 +19,10 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 50 MB Max upload limit
 
 # Ensure upload directory & database exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-init_db()
+try:
+    init_db()
+except Exception as db_init_err:
+    logger.warning(f"Database init warning: {db_init_err}")
 
 # Initialize Master Predictor Engine
 predictor = MultimodalPredictor(models_dir="saved_models")
@@ -141,16 +144,20 @@ def predict_route():
         results = predictor.predict_all(cog_dict, eeg_file=eeg_file_path, speech_audio=speech_audio)
         results['patient_name'] = patient_name
 
-        # Save Report to Database (Tied to logged-in user account)
-        user_id = session['user']['id']
-        report_id = save_patient_report(user_id, patient_name, age, gender, results)
-        logger.info(f"Patient report #{report_id} saved to database for patient '{patient_name}' by user ID {user_id}")
+        # Fail-Safe Database Persistence (Tied to logged-in user account)
+        report_id = 1
+        try:
+            user_id = session.get('user', {}).get('id')
+            report_id = save_patient_report(user_id, patient_name, age, gender, results)
+            logger.info(f"Patient report #{report_id} saved to database for patient '{patient_name}'")
+        except Exception as db_err:
+            logger.warning(f"Database save non-blocking warning: {db_err}")
 
         return render_template('result.html', res=results, patient_name=patient_name, report_id=report_id, cog_input=cog_dict)
 
     except Exception as e:
         logger.error(f"Error during patient assessment execution: {e}")
-        return render_template('index.html', error=f"Assessment Error: {str(e)}")
+        return render_template('index.html', error=f"Assessment Execution Error: {str(e)}")
 
 @app.route('/my-reports')
 def my_reports():
