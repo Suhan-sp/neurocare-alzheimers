@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: neurocare-alzheimers-ai
+    name: alzheimer-prediction-system
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: python prod_server.py
