@@ -25,7 +25,7 @@ class SpeechPreprocessor:
 
     def load_and_clean_audio(self, file_path_or_bytes, top_db: float = 25.0) -> np.ndarray:
         """
-        Loads audio from filepath or bytes, ressembles, trims silence, and reduces noise.
+        Loads audio from filepath or bytes, resamples, trims silence, and reduces noise.
         """
         y = None
         sr = self.target_sr
@@ -103,6 +103,9 @@ class SpeechPreprocessor:
 
     def transform(self, X_features: np.ndarray) -> np.ndarray:
         return self.scaler.transform(X_features)
+
+    def save(self, filepath: str):
+        joblib.dump(self, filepath)
 
     @classmethod
     def load(cls, filepath: str):

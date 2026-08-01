@@ -24,7 +24,6 @@ def safe_predict_proba(model, X, fallback_val=0.15):
     if model is None:
         return fallback_val
     try:
-        # Patch any missing internal scikit-learn attributes dynamically
         if not hasattr(model, 'multi_class'):
             setattr(model, 'multi_class', 'auto')
             model.__dict__['multi_class'] = 'auto'
@@ -53,6 +52,7 @@ class MultimodalPredictor:
         self.cog_preprocessor = None
         self.eeg_preprocessor = None
         self.speech_preprocessor = None
+        self.speech_selector = None
         self.cog_model = None
         self.eeg_model = None
         self.speech_model = None
@@ -84,7 +84,11 @@ class MultimodalPredictor:
             if os.path.exists(speech_prep_path) and os.path.exists(speech_model_path):
                 self.speech_preprocessor = SpeechPreprocessor.load(speech_prep_path)
                 speech_art = joblib.load(speech_model_path)
-                self.speech_model = speech_art['model'] if isinstance(speech_art, dict) else speech_art
+                if isinstance(speech_art, dict):
+                    self.speech_model = speech_art.get('model')
+                    self.speech_selector = speech_art.get('selector')
+                else:
+                    self.speech_model = speech_art
 
             # 4. Ensemble
             ens_path = os.path.join(self.models_dir, "ensemble_model.pkl")
@@ -141,6 +145,8 @@ class MultimodalPredictor:
             feat_dict, mel_spec_db = self.speech_preprocessor.process_single_audio(audio_path_or_bytes)
             X_mat = np.array([list(feat_dict.values())])
             X_scaled = self.speech_preprocessor.transform(X_mat)
+            if self.speech_selector is not None:
+                X_scaled = self.speech_selector.transform(X_scaled)
             p_speech = safe_predict_proba(self.speech_model, X_scaled, fallback_val=adaptive_fallback)
             return p_speech, mel_spec_db
         except Exception as e:

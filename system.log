@@ -771,3 +771,157 @@
 [2026-07-31 13:19:29] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
 [2026-07-31 13:19:29] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
 [2026-07-31 13:19:29] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-07-31 20:42:27] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:42:27] [INFO] [alzheimer_system]:     STARTING SPEECH AUDIO MODEL TRAINING PIPELINE 
+[2026-07-31 20:42:27] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:42:27] [INFO] [alzheimer_system]: Found 100 WAV files in Speech dataset
+[2026-07-31 20:42:27] [INFO] [alzheimer_system]: Extracting speech features from 100 recordings...
+[2026-07-31 20:43:02] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:43:02] [INFO] [alzheimer_system]:     STARTING SPEECH AUDIO MODEL TRAINING PIPELINE 
+[2026-07-31 20:43:02] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:43:02] [INFO] [alzheimer_system]: Found 100 WAV files in Speech dataset
+[2026-07-31 20:43:02] [INFO] [alzheimer_system]: Extracting speech features from 100 recordings...
+[2026-07-31 20:43:14] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-07-31 20:43:14] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-07-31 20:43:14] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.6400 | F1: 0.7632 | AUC: 0.5518
+[2026-07-31 20:43:14] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-07-31 20:43:22] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.7000 | F1: 0.8148 | AUC: 0.5717
+[2026-07-31 20:43:22] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-07-31 20:43:26] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.6900 | F1: 0.7947 | AUC: 0.6621
+[2026-07-31 20:43:26] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-07-31 20:43:42] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.7100 | F1: 0.8176 | AUC: 0.6852
+[2026-07-31 20:43:42] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-07-31 20:43:45] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.7100 | F1: 0.8054 | AUC: 0.6748
+[2026-07-31 20:43:45] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'CatBoost' with ROC-AUC: 0.6852
+[2026-07-31 20:43:45] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-07-31 20:43:49] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.4000 | Val F1: 0.4000 | Val AUC: 0.5069
+[2026-07-31 20:43:49] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-07-31 20:44:01] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.5600 | Val F1: 0.6667 | Val AUC: 0.3819
+[2026-07-31 20:44:01] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-07-31 20:44:07] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.6400 | Val F1: 0.7805 | Val AUC: 0.3333
+[2026-07-31 20:44:07] [INFO] [alzheimer_system]: SPEECH SELECTION: Winner is 'ML (CatBoost)' with ROC-AUC: 0.6852
+[2026-07-31 20:44:07] [INFO] [alzheimer_system]: Saved best speech model (ML (CatBoost)) to saved_models/best_speech_model.pkl
+[2026-07-31 20:44:23] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:44:23] [INFO] [alzheimer_system]:     STARTING SPEECH AUDIO MODEL TRAINING PIPELINE 
+[2026-07-31 20:44:23] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:44:23] [INFO] [alzheimer_system]: Found 100 WAV files in Speech dataset
+[2026-07-31 20:44:23] [INFO] [alzheimer_system]: Extracting speech features from 100 recordings...
+[2026-07-31 20:44:35] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-07-31 20:44:35] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-07-31 20:44:35] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.6400 | F1: 0.7632 | AUC: 0.5518
+[2026-07-31 20:44:35] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-07-31 20:44:41] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.7000 | F1: 0.8148 | AUC: 0.5717
+[2026-07-31 20:44:41] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-07-31 20:44:45] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.6900 | F1: 0.7947 | AUC: 0.6621
+[2026-07-31 20:44:45] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-07-31 20:44:58] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.7100 | F1: 0.8176 | AUC: 0.6852
+[2026-07-31 20:44:58] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-07-31 20:45:00] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.7100 | F1: 0.8054 | AUC: 0.6748
+[2026-07-31 20:45:00] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'CatBoost' with ROC-AUC: 0.6852
+[2026-07-31 20:45:01] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-07-31 20:45:04] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.6400 | Val F1: 0.7805 | Val AUC: 0.4861
+[2026-07-31 20:45:04] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-07-31 20:45:21] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.4800 | Val F1: 0.5517 | Val AUC: 0.3681
+[2026-07-31 20:45:21] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-07-31 20:45:25] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.6400 | Val F1: 0.7805 | Val AUC: 0.2986
+[2026-07-31 20:45:25] [INFO] [alzheimer_system]: SPEECH SELECTION: Winner is 'ML (CatBoost)' with ROC-AUC: 0.6852
+[2026-07-31 20:45:25] [INFO] [alzheimer_system]: Saved best speech model (ML (CatBoost)) to saved_models/best_speech_model.pkl
+[2026-07-31 20:45:44] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:45:44] [INFO] [alzheimer_system]:     STARTING SPEECH AUDIO MODEL TRAINING PIPELINE 
+[2026-07-31 20:45:44] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:45:44] [INFO] [alzheimer_system]: Found 100 WAV files in Speech dataset
+[2026-07-31 20:45:44] [INFO] [alzheimer_system]: Extracting speech features from 100 recordings...
+[2026-07-31 20:45:54] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-07-31 20:45:54] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-07-31 20:45:55] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.6400 | F1: 0.7632 | AUC: 0.5518
+[2026-07-31 20:45:55] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-07-31 20:46:01] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.7000 | F1: 0.8148 | AUC: 0.5717
+[2026-07-31 20:46:01] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-07-31 20:46:05] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.6900 | F1: 0.7947 | AUC: 0.6621
+[2026-07-31 20:46:05] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-07-31 20:46:18] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.7100 | F1: 0.8176 | AUC: 0.6852
+[2026-07-31 20:46:18] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-07-31 20:46:20] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.7100 | F1: 0.8054 | AUC: 0.6748
+[2026-07-31 20:46:20] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'CatBoost' with ROC-AUC: 0.6852
+[2026-07-31 20:46:20] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-07-31 20:46:23] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.6400 | Val F1: 0.7805 | Val AUC: 0.4444
+[2026-07-31 20:46:23] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-07-31 20:46:30] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.6000 | Val F1: 0.7500 | Val AUC: 0.4236
+[2026-07-31 20:46:30] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-07-31 20:46:34] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.6400 | Val F1: 0.7805 | Val AUC: 0.3333
+[2026-07-31 20:46:34] [INFO] [alzheimer_system]: SPEECH SELECTION: Winner is 'ML (CatBoost)' with ROC-AUC: 0.6852
+[2026-07-31 20:46:34] [INFO] [alzheimer_system]: Saved best speech model (ML (CatBoost)) to saved_models/best_speech_model.pkl
+[2026-07-31 20:46:34] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:46:34] [INFO] [alzheimer_system]:   SPEECH TRAINING COMPLETE: Best = ML (CatBoost)
+[2026-07-31 20:46:34] [INFO] [alzheimer_system]: ==================================================
+[2026-07-31 20:46:52] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-07-31 20:46:53] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-07-31 20:46:53] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-07-31 20:47:05] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-07-31 20:47:05] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-07-31 20:47:05] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-08-01 11:56:04] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 11:56:04] [INFO] [alzheimer_system]:     STARTING SPEECH AUDIO MODEL TRAINING PIPELINE 
+[2026-08-01 11:56:04] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 11:56:04] [INFO] [alzheimer_system]: Found 150 validated clinical audio recordings with exact ground truth labels.
+[2026-08-01 11:56:04] [INFO] [alzheimer_system]: Extracting 80+ acoustic features from 150 recordings...
+[2026-08-01 11:56:33] [INFO] [alzheimer_system]: Extracted feature matrix shape: (150, 112) across 2 classes.
+[2026-08-01 11:56:33] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-08-01 11:56:33] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-08-01 11:56:33] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.6867 | F1: 0.4471 | AUC: 0.7274
+[2026-08-01 11:56:33] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-08-01 11:56:44] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.6600 | F1: 0.3200 | AUC: 0.6854
+[2026-08-01 11:56:44] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-08-01 11:56:51] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.6533 | F1: 0.3500 | AUC: 0.6372
+[2026-08-01 11:56:51] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-08-01 11:57:04] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.6800 | F1: 0.3514 | AUC: 0.7046
+[2026-08-01 11:57:04] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-08-01 11:57:07] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.7000 | F1: 0.4444 | AUC: 0.7034
+[2026-08-01 11:57:07] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'Logistic Regression' with ROC-AUC: 0.7274
+[2026-08-01 11:57:07] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-08-01 11:57:13] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.4737 | Val F1: 0.5455 | Val AUC: 0.7508
+[2026-08-01 11:57:13] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-08-01 11:57:21] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.6579 | Val F1: 0.0000 | Val AUC: 0.5446
+[2026-08-01 11:57:21] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-08-01 11:57:28] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.6579 | Val F1: 0.0000 | Val AUC: 0.4769
+[2026-08-01 11:57:28] [INFO] [alzheimer_system]: SPEECH SELECTION: Winner is 'Deep Learning (CNN)' with ROC-AUC: 0.7508
+[2026-08-01 11:57:28] [INFO] [alzheimer_system]: Saved best speech model (Deep Learning (CNN)) to saved_models/best_speech_model.pkl
+[2026-08-01 11:57:29] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 11:57:29] [INFO] [alzheimer_system]:   SPEECH TRAINING COMPLETE: Best = Deep Learning (CNN) (AUC: 0.7508)
+[2026-08-01 11:57:29] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 11:57:47] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-01 11:57:54] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-01 11:57:54] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-08-01 11:59:13] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 11:59:13] [INFO] [alzheimer_system]:     STARTING HIGH-ACCURACY SPEECH MODEL PIPELINE  
+[2026-08-01 11:59:13] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 11:59:13] [INFO] [alzheimer_system]: Loaded ALL 591 clinical audio recordings with exact ground truth labels.
+[2026-08-01 11:59:13] [INFO] [alzheimer_system]: Extracting 80+ acoustic features across all 591 recordings...
+[2026-08-01 12:00:35] [INFO] [alzheimer_system]: Raw feature matrix shape: (591, 112) (Class 0: 394, Class 1: 197)
+[2026-08-01 12:00:35] [INFO] [alzheimer_system]: Balanced feature matrix shape: (788, 112) (Class 0: 394, Class 1: 394)
+[2026-08-01 12:00:35] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-08-01 12:00:35] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-08-01 12:00:35] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.7525 | F1: 0.7541 | AUC: 0.8096
+[2026-08-01 12:00:35] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-08-01 12:00:54] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.9213 | F1: 0.9209 | AUC: 0.9775
+[2026-08-01 12:00:54] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-08-01 12:01:03] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.9137 | F1: 0.9146 | AUC: 0.9702
+[2026-08-01 12:01:03] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-08-01 12:01:24] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.9074 | F1: 0.9089 | AUC: 0.9689
+[2026-08-01 12:01:24] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-08-01 12:01:31] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.9048 | F1: 0.9054 | AUC: 0.9747
+[2026-08-01 12:01:31] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'Random Forest' with ROC-AUC: 0.9775
+[2026-08-01 12:01:31] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-08-01 12:01:42] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.9241 | Val F1: 0.9259 | Val AUC: 0.9490
+[2026-08-01 12:01:42] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-08-01 12:02:08] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.7532 | Val F1: 0.7797 | Val AUC: 0.7617
+[2026-08-01 12:02:08] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-08-01 12:02:27] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.8608 | Val F1: 0.8553 | Val AUC: 0.9372
+[2026-08-01 12:02:27] [INFO] [alzheimer_system]: HIGH-ACCURACY SPEECH SELECTION: Winner is 'ML (Random Forest)' with ROC-AUC: 0.9775
+[2026-08-01 12:02:27] [INFO] [alzheimer_system]: Saved best speech model (ML (Random Forest)) to saved_models/best_speech_model.pkl
+[2026-08-01 12:02:28] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 12:02:28] [INFO] [alzheimer_system]:   SPEECH TRAINING COMPLETE: Best = ML (Random Forest) (AUC: 0.9775)
+[2026-08-01 12:02:28] [INFO] [alzheimer_system]: ==================================================
+[2026-08-01 12:02:43] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-01 12:02:44] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-01 12:02:44] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...

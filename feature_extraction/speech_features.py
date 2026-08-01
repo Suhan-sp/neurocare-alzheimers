@@ -1,7 +1,8 @@
 """
-Speech Feature Extraction Module
-Extracts MFCCs, Pitch, Energy, Zero Crossing Rate, Spectral Centroid, Chroma,
-Mel Spectrogram statistics, Jitter, Shimmer, and Speaking Rate from audio signals using Librosa.
+Enhanced Speech Feature Extraction Module
+Extracts 20 MFCCs, Deltas, Delta-Deltas, Pitch (F0), RMS Energy, ZCR,
+Spectral Centroid, Bandwidth, Contrast, Rolloff, Flatness, Tonnetz,
+Mel Spectrogram statistics, Jitter, Shimmer, and Pause/Speaking Rate using Librosa.
 """
 
 import numpy as np
@@ -11,16 +12,8 @@ from utils.logger import logger
 def compute_jitter_shimmer(y: np.ndarray, sr: int):
     """
     Computes acoustic perturbation metrics: Jitter (pitch variability) and Shimmer (amplitude variability).
-    
-    Args:
-        y (np.ndarray): Audio signal.
-        sr (int): Sampling rate.
-        
-    Returns:
-        tuple: (jitter, shimmer)
     """
     try:
-        # Extract fundamental frequency F0
         y_short = y[:sr * 2] if len(y) > sr * 2 else y
         f0 = librosa.yin(y_short, fmin=80, fmax=400, sr=sr)
         f0_clean = f0[f0 > 0]
@@ -32,7 +25,6 @@ def compute_jitter_shimmer(y: np.ndarray, sr: int):
         period_diffs = np.abs(np.diff(periods))
         jitter = float(np.mean(period_diffs) / (np.mean(periods) + 1e-12))
         
-        # Amplitude of harmonic segments
         rms_frames = librosa.feature.rms(y=y_short)[0]
         rms_diffs = np.abs(np.diff(rms_frames))
         shimmer = float(np.mean(rms_diffs) / (np.mean(rms_frames) + 1e-12))
@@ -44,28 +36,21 @@ def compute_jitter_shimmer(y: np.ndarray, sr: int):
 
 def extract_speech_features(y: np.ndarray, sr: int = 16000) -> tuple:
     """
-    Extracts comprehensive audio features from loaded audio time-series.
-    
-    Args:
-        y (np.ndarray): Audio signal array.
-        sr (int): Sampling rate (default 16,000 Hz).
-        
-    Returns:
-        dict: Feature dictionary.
-        np.ndarray: Mel Spectrogram matrix (for deep learning models and visualization).
+    Extracts comprehensive 80+ acoustic features from loaded audio time-series.
     """
     features = {}
     
-    # Ensure minimum signal length
+    # Ensure minimum signal length (0.5s)
     if len(y) < sr * 0.5:
         y = np.pad(y, (0, int(sr * 0.5) - len(y)))
 
-    # 1. MFCC Features (13 coefficients + Delta + Delta-Delta)
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+    # 1. Enhanced MFCC Features (20 coefficients + Delta + Delta-Delta)
+    n_mfcc = 20
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
     mfcc_delta = librosa.feature.delta(mfcc)
     mfcc_delta2 = librosa.feature.delta(mfcc, order=2)
     
-    for i in range(13):
+    for i in range(n_mfcc):
         features[f'mfcc_{i+1}_mean'] = float(np.mean(mfcc[i]))
         features[f'mfcc_{i+1}_std'] = float(np.std(mfcc[i]))
         features[f'mfcc_delta_{i+1}_mean'] = float(np.mean(mfcc_delta[i]))
@@ -87,34 +72,55 @@ def extract_speech_features(y: np.ndarray, sr: int = 16000) -> tuple:
     features['zcr_mean'] = float(np.mean(zcr))
     features['zcr_std'] = float(np.std(zcr))
 
-    # 5. Spectral Centroid & Bandwidth
+    # 5. Spectral Centroid, Bandwidth, Rolloff, Flatness, Contrast
     spec_cent = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
     spec_bw = librosa.feature.spectral_bandwidth(y=y, sr=sr)[0]
+    spec_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)[0]
+    spec_flatness = librosa.feature.spectral_flatness(y=y)[0]
+    spec_contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
+
     features['spectral_centroid_mean'] = float(np.mean(spec_cent))
     features['spectral_centroid_std'] = float(np.std(spec_cent))
     features['spectral_bandwidth_mean'] = float(np.mean(spec_bw))
+    features['spectral_rolloff_mean'] = float(np.mean(spec_rolloff))
+    features['spectral_flatness_mean'] = float(np.mean(spec_flatness))
 
-    # 6. Chroma Features (12 pitch classes)
+    for i in range(spec_contrast.shape[0]):
+        features[f'spec_contrast_{i+1}_mean'] = float(np.mean(spec_contrast[i]))
+
+    # 6. Tonnetz (Harmonic Pitch Profiles)
+    try:
+        tonnetz = librosa.feature.tonnetz(y=y, sr=sr)
+        for i in range(tonnetz.shape[0]):
+            features[f'tonnetz_{i+1}_mean'] = float(np.mean(tonnetz[i]))
+    except Exception:
+        pass
+
+    # 7. Chroma Features (12 pitch classes)
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
     features['chroma_mean'] = float(np.mean(chroma))
     features['chroma_std'] = float(np.std(chroma))
 
-    # 7. Mel Spectrogram Summary
+    # 8. Mel Spectrogram Summary
     mel_spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=64)
     mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
     features['mel_spec_mean'] = float(np.mean(mel_spec_db))
     features['mel_spec_std'] = float(np.std(mel_spec_db))
 
-    # 8. Jitter & Shimmer
+    # 9. Jitter & Shimmer
     jitter, shimmer = compute_jitter_shimmer(y, sr)
     features['jitter'] = jitter
     features['shimmer'] = shimmer
 
-    # 9. Speaking Rate & Silence / Pause Ratio
-    non_silent_intervals = librosa.effects.split(y, top_db=25)
-    non_silent_duration = sum([(end - start) for start, end in non_silent_intervals]) / sr
-    total_duration = len(y) / sr
-    features['speaking_rate'] = float(non_silent_duration / (total_duration + 1e-12))
-    features['pause_ratio'] = float(1.0 - features['speaking_rate'])
+    # 10. Speaking Rate & Silence / Pause Ratio
+    try:
+        non_silent_intervals = librosa.effects.split(y, top_db=25)
+        non_silent_duration = sum([(end - start) for start, end in non_silent_intervals]) / sr
+        total_duration = len(y) / sr
+        features['speaking_rate'] = float(non_silent_duration / (total_duration + 1e-12))
+        features['pause_ratio'] = float(1.0 - features['speaking_rate'])
+    except Exception:
+        features['speaking_rate'] = 0.8
+        features['pause_ratio'] = 0.2
 
     return features, mel_spec_db
