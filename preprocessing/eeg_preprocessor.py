@@ -15,10 +15,10 @@ from utils.logger import logger
 
 class EEGPreprocessor:
     """
-    Preprocessing pipeline for EEG recordings (CSV / EDF format).
+    Preprocessing pipeline for EEG recordings (CSV / EDF / SET format).
     Performs bandpass filtering, window epoching, and feature extraction.
     """
-    DEFAULT_CHANNELS = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4']
+    DEFAULT_CHANNELS = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'O1', 'O2', 'T6']
     
     def __init__(self, fs: float = 250.0, l_freq: float = 0.5, h_freq: float = 45.0):
         self.fs = fs
@@ -30,12 +30,6 @@ class EEGPreprocessor:
     def bandpass_filter(self, data: np.ndarray) -> np.ndarray:
         """
         Applies a Butterworth bandpass filter (0.5 Hz - 45 Hz).
-        
-        Args:
-            data (np.ndarray): 2D signal array (samples, channels)
-            
-        Returns:
-            np.ndarray: Filtered signal array.
         """
         nyquist = 0.5 * self.fs
         low = self.l_freq / nyquist
@@ -54,15 +48,7 @@ class EEGPreprocessor:
 
     def process_raw_file(self, file_path_or_df, window_seconds: float = 4.0):
         """
-        Processes a single raw CSV or EDF file into feature vectors and channel PSDs.
-        
-        Args:
-            file_path_or_df: Path to CSV/EDF file OR pre-loaded DataFrame.
-            window_seconds (float): Length of epoch window.
-            
-        Returns:
-            np.ndarray: Feature matrix for the recording (num_epochs, num_features)
-            dict: Average PSD dictionary per channel
+        Processes a single raw CSV, EDF, or SET file into feature vectors and channel PSDs.
         """
         if isinstance(file_path_or_df, str):
             if file_path_or_df.endswith('.edf'):
@@ -70,7 +56,13 @@ class EEGPreprocessor:
                 raw = mne.io.read_raw_edf(file_path_or_df, preload=True, verbose=False)
                 raw.filter(l_freq=self.l_freq, h_freq=self.h_freq, verbose=False)
                 df = raw.to_data_frame()
-                # Drop time column if present
+                if 'time' in df.columns:
+                    df = df.drop(columns=['time'])
+            elif file_path_or_df.endswith('.set'):
+                import mne
+                raw = mne.io.read_raw_eeglab(file_path_or_df, preload=True, verbose=False)
+                raw.filter(l_freq=self.l_freq, h_freq=self.h_freq, verbose=False)
+                df = raw.to_data_frame()
                 if 'time' in df.columns:
                     df = df.drop(columns=['time'])
             else:
@@ -87,7 +79,7 @@ class EEGPreprocessor:
 
         channels = [c for c in df.columns if c in self.DEFAULT_CHANNELS]
         if not channels:
-            channels = list(df.columns[:16]) # Fallback to first 16 columns
+            channels = list(df.columns[:min(16, len(df.columns))]) # Fallback
 
         signal_data = df[channels].values.astype(np.float64)
 
@@ -119,38 +111,27 @@ class EEGPreprocessor:
                 
             feature_rows.append(list(feat_dict.values()))
 
-            # Accumulate PSDs for visualization
+            # Accumulate PSDs for visual plotting
             for ch, (freqs, psd) in psd_dict.items():
                 if ch not in psd_accum:
                     psd_accum[ch] = (freqs, np.zeros_like(psd))
                 psd_accum[ch] = (freqs, psd_accum[ch][1] + psd)
 
-        # Average PSDs over epochs
-        avg_psd_dict = {}
-        for ch, (freqs, total_psd) in psd_accum.items():
-            avg_psd_dict[ch] = (freqs, total_psd / num_epochs)
+        # Average accumulated PSDs
+        avg_psd_dict = {ch: (freqs, psd / num_epochs) for ch, (freqs, psd) in psd_accum.items()}
 
-        X_mat = np.array(feature_rows)
-        return X_mat, avg_psd_dict, y_val, channels
+        feature_matrix = np.array(feature_rows)
+        return feature_matrix, avg_psd_dict, y_val, self.feature_names
 
     def fit_transform(self, X_features: np.ndarray) -> np.ndarray:
-        """Fits scale transformer and scales features."""
         return self.scaler.fit_transform(X_features)
 
     def transform(self, X_features: np.ndarray) -> np.ndarray:
-        """Scales features using fitted scaler."""
         return self.scaler.transform(X_features)
 
     def save(self, filepath: str):
-        """Saves EEG preprocessor state."""
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         joblib.dump(self, filepath)
-        logger.info(f"Saved EEG preprocessor to {filepath}")
 
-    @staticmethod
-    def load(filepath: str):
-        """Loads EEG preprocessor state."""
-        if os.path.exists(filepath):
-            return joblib.load(filepath)
-        else:
-            raise FileNotFoundError(f"EEG Preprocessor not found at {filepath}")
+    @classmethod
+    def load(cls, filepath: str):
+        return joblib.load(filepath)

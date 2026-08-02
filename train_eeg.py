@@ -1,13 +1,20 @@
 """
 EEG Prediction Model Training Pipeline (train_eeg.py)
-Preprocesses raw multi-channel EEG signals, extracts frequency & Hjorth features,
-trains ML (Random Forest, XGBoost, LightGBM) and Deep Learning (CNN, LSTM, CNN-LSTM) models,
-automatically selects the best architecture, and saves saved_models/best_eeg_model.pkl.
+Processes 88 human subjects from OpenNeuro ds004504 dataset (eeg new dataset/):
+- sub-001 to sub-036: Alzheimer's Disease (AD) -> Class 1
+- sub-037 to sub-059: Frontotemporal Dementia (FTD) -> Class 1
+- sub-060 to sub-088: Healthy Controls (CN) -> Class 0
+
+Extracts 16-channel EEG PSD power bands (Delta, Theta, Alpha, Beta, Gamma), Hjorth parameters,
+and spectral slowing ratios across 1,300+ clinical epochs with true ground-truth subject labels.
 """
 
 import os
+import glob
 import pandas as pd
 import numpy as np
+import mne
+import joblib
 from sklearn.model_selection import train_test_split
 from preprocessing.eeg_preprocessor import EEGPreprocessor
 from models.ml_models import MLModelSuite
@@ -15,77 +22,98 @@ from models.deep_models import DeepModelSuite
 from utils.visualization import PublicationVisualizer
 from utils.logger import logger
 
-def generate_synthetic_eeg_data(num_samples=3000, num_channels=16, fs=250.0):
-    """Generates synthetic multi-channel EEG signal for quick pipeline testing."""
-    t = np.linspace(0, num_samples / fs, num_samples)
-    channels = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4']
-    
-    # Healthy (Alpha 10Hz dominant) vs AD (Theta 6Hz & Delta 2Hz dominant)
-    eeg_data = {}
-    status = np.random.choice([0, 1], size=num_samples)
-    
-    for ch in channels[:num_channels]:
-        alpha = np.sin(2 * np.pi * 10 * t) + np.random.normal(0, 0.5, num_samples)
-        theta = np.sin(2 * np.pi * 6 * t) * 1.5 + np.random.normal(0, 0.5, num_samples)
-        signal_ch = np.where(status == 1, theta, alpha)
-        eeg_data[ch] = signal_ch
+def run_eeg_training(dataset_dir="eeg new dataset", output_dir="saved_models"):
+    """Runs the complete 88-subject clinical EEG training and model selection pipeline."""
+    logger.info("==================================================")
+    logger.info("    STARTING CLINICAL EEG MODEL TRAINING PIPELINE ")
+    logger.info("==================================================")
+
+    preprocessor = EEGPreprocessor(fs=500.0, l_freq=0.5, h_freq=45.0)
+    X_all_epochs = []
+    y_all_epochs = []
+    sample_psd_dict = None
+    healthy_sample_df = None
+    ad_sample_df = None
+
+    logger.info(f"Loading 88 human subjects from '{dataset_dir}' with true ground-truth labels...")
+
+    # Iterate through all 88 subjects in OpenNeuro ds004504 dataset
+    for sub_num in range(1, 89):
+        sub_id = f"sub-{sub_num:03d}"
+        set_path = os.path.join(dataset_dir, sub_id, "eeg", f"{sub_id}_task-eyesclosed_eeg.set")
         
-    eeg_data['status'] = status
-    return pd.DataFrame(eeg_data)
+        if not os.path.exists(set_path):
+            continue
 
-def run_eeg_training(dataset_path="EEG dataset/AD_all_patients.csv", output_dir="saved_models"):
-    """Runs the complete EEG training and model selection pipeline."""
-    logger.info("==================================================")
-    logger.info("      STARTING EEG MODEL TRAINING PIPELINE        ")
-    logger.info("==================================================")
+        # True Subject Ground-Truth Mapping
+        if sub_num <= 59:
+            label = 1 # Class 1: Alzheimer's / Dementia (AD: sub-001 to 036, FTD: sub-037 to 059)
+        else:
+            label = 0 # Class 0: Healthy Control (CN: sub-060 to 088)
 
-    # 1. Load Raw EEG Data
-    preprocessor = EEGPreprocessor()
-    if os.path.exists(dataset_path):
-        logger.info(f"Loading EEG recording from {dataset_path}...")
-        df_raw = pd.read_csv(dataset_path, nrows=20000) # Fast load for training
-    else:
-        logger.warning(f"EEG file not found at {dataset_path}. Generating synthetic EEG dataset...")
-        df_raw = generate_synthetic_eeg_data()
+        try:
+            # Crop to 30 seconds for sub-second feature extraction
+            raw = mne.io.read_raw_eeglab(set_path, preload=True, verbose=False)
+            if raw.times[-1] > 30.0:
+                raw.crop(tmin=0.0, tmax=30.0)
+            raw.filter(l_freq=0.5, h_freq=45.0, verbose=False)
+            
+            df = raw.to_data_frame()
+            if 'time' in df.columns:
+                df = df.drop(columns=['time'])
 
-    # 2. Extract Features via Epoching and Bandpass Filtering
-    X_features, avg_psd_dict, y_raw, channels = preprocessor.process_raw_file(df_raw, window_seconds=4.0)
+            # Store sample CSVs for user testing in portal
+            if sub_num == 60 and healthy_sample_df is None:
+                healthy_sample_df = df.copy()
+                healthy_sample_df['status'] = 0
+            elif sub_num == 1 and ad_sample_df is None:
+                ad_sample_df = df.copy()
+                ad_sample_df['status'] = 1
 
-    # Generate synthetic binary epoch targets if target was row-level continuous
-    if y_raw is not None and len(y_raw) >= len(X_features):
-        samples_per_window = int(4.0 * preprocessor.fs)
-        num_epochs = len(X_features)
-        y_epochs = []
-        for ep in range(num_epochs):
-            st = ep * samples_per_window
-            en = st + samples_per_window
-            if en <= len(y_raw):
-                y_epochs.append(1 if np.mean(y_raw[st:en]) >= 0.5 else 0)
-        y = np.array(y_epochs)
-        if len(y) < len(X_features):
-            y = np.pad(y, (0, len(X_features) - len(y)), mode='edge')
-        if len(np.unique(y)) < 2:
-            y = np.array([i % 2 for i in range(len(X_features))])
-    else:
-        y = np.array([i % 2 for i in range(len(X_features))])
+            X_mat, psd_dict, _, _ = preprocessor.process_raw_file(df, window_seconds=2.0)
+            
+            if len(X_mat) > 0:
+                X_all_epochs.append(X_mat)
+                y_all_epochs.extend([label] * len(X_mat))
+                if sample_psd_dict is None:
+                    sample_psd_dict = psd_dict
 
-    # Fit and scale EEG feature matrix
-    X_scaled = preprocessor.fit_transform(X_features)
+        except Exception as e:
+            logger.warning(f"Error processing {sub_id}: {e}")
+
+    X_concat = np.vstack(X_all_epochs)
+    y_concat = np.array(y_all_epochs)
+
+    logger.info(f"Extracted EEG Dataset: {X_concat.shape[0]} total clinical epochs across {X_concat.shape[1]} features.")
+    logger.info(f"Ground-Truth Class Balance -> Healthy (0): {sum(y_concat==0)} epochs, Alzheimer's (1): {sum(y_concat==1)} epochs")
+
+    # Save single-patient test CSVs in EEG dataset folder
+    os.makedirs("EEG dataset", exist_ok=True)
+    if healthy_sample_df is not None:
+        healthy_sample_df.to_csv("EEG dataset/single_patient_EEG.csv", index=False)
+        healthy_sample_df.to_csv("EEG dataset/healthy_patient_EEG.csv", index=False)
+        logger.info("Saved Healthy Control sample EEG to EEG dataset/single_patient_EEG.csv (status=0)")
+    if ad_sample_df is not None:
+        ad_sample_df.to_csv("EEG dataset/alzheimer_patient_EEG.csv", index=False)
+        logger.info("Saved Alzheimer's Patient sample EEG to EEG dataset/alzheimer_patient_EEG.csv (status=1)")
+
+    # Fit & Scale Features
+    X_scaled = preprocessor.fit_transform(X_concat)
     preprocessor.save(os.path.join(output_dir, "eeg_preprocessor.pkl"))
 
-    # 3. Train & Evaluate ML Models
+    # 3. Train & Evaluate ML Model Suite
     ml_suite = MLModelSuite()
-    ml_results, (best_ml_name, best_ml_model) = ml_suite.train_and_evaluate_all(X_scaled, y, cv_splits=5)
+    ml_results, (best_ml_name, best_ml_model) = ml_suite.train_and_evaluate_all(X_scaled, y_concat, cv_splits=5)
     best_ml_score = ml_results[best_ml_name]['roc_auc']
 
-    # 4. Train & Evaluate Deep Learning Models (1D-CNN, LSTM, CNN-LSTM)
-    X_tr, X_va, y_tr, y_va = train_test_split(X_scaled, y, test_size=0.25, random_state=42, stratify=y)
+    # 4. Train Deep Learning Architectures
+    X_tr, X_va, y_tr, y_va = train_test_split(X_scaled, y_concat, test_size=0.20, random_state=42, stratify=y_concat)
     dl_results, (best_dl_name, best_dl_model) = DeepModelSuite.train_and_evaluate_deep_models(
         X_tr, y_tr, X_va, y_va, epochs=20, batch_size=32
     )
     best_dl_score = dl_results[best_dl_name]['roc_auc']
 
-    # 5. Automatically Select Best Overall Model (ML vs DL)
+    # 5. Select Winner Model
     if best_dl_score > best_ml_score:
         overall_best_name = f"Deep Learning ({best_dl_name})"
         overall_best_model = best_dl_model
@@ -95,32 +123,24 @@ def run_eeg_training(dataset_path="EEG dataset/AD_all_patients.csv", output_dir=
         overall_best_name = f"ML ({best_ml_name})"
         overall_best_model = best_ml_model
         overall_probs = ml_results[best_ml_name]['oof_probs']
-        y_test_eval = y
+        y_test_eval = y_concat
 
-    logger.info(f"EEG SELECTION: Winner is '{overall_best_name}' with ROC-AUC: {max(best_ml_score, best_dl_score):.4f}")
+    logger.info(f"CLINICAL EEG SELECTION: Winner is '{overall_best_name}' with ROC-AUC: {max(best_ml_score, best_dl_score):.4f}")
 
     # 6. Save Model Artifact
-    artifact = {
-        'model_name': overall_best_name,
-        'model': overall_best_model,
-        'feature_names': preprocessor.feature_names
-    }
-    os.makedirs(output_dir, exist_ok=True)
-    import joblib
-    joblib.dump(artifact, os.path.join(output_dir, "best_eeg_model.pkl"))
+    joblib.dump({'model_name': overall_best_name, 'model': overall_best_model, 'feature_names': preprocessor.feature_names},
+                os.path.join(output_dir, "best_eeg_model.pkl"))
+    logger.info(f"Saved best EEG model ({overall_best_name}) to {output_dir}/best_eeg_model.pkl")
 
     # 7. Generate Visualizations
-    PublicationVisualizer.plot_eeg_power_spectrum(avg_psd_dict, save_path="static/plots/eeg_psd.png")
-    PublicationVisualizer.plot_roc_curve(
-        y_test_eval, overall_probs,
-        title=f"EEG ROC Curve ({overall_best_name})",
-        save_path="static/plots/eeg_roc.png"
-    )
+    vis = PublicationVisualizer()
+    vis.plot_roc_curve(y_test_eval, overall_probs, "EEG Signal Model", "static/plots/eeg_roc.png")
+    if sample_psd_dict is not None:
+        vis.plot_eeg_power_spectrum(sample_psd_dict, save_path="static/plots/eeg_psd.png")
 
     logger.info("==================================================")
-    logger.info(f"  EEG TRAINING COMPLETE: Best = {overall_best_name}")
+    logger.info(f"  EEG TRAINING COMPLETE: Best = {overall_best_name} (AUC: {max(best_ml_score, best_dl_score):.4f})")
     logger.info("==================================================")
-    return overall_best_name, max(best_ml_score, best_dl_score)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_eeg_training()
