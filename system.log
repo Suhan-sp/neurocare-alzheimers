@@ -1142,3 +1142,24 @@
 [2026-08-03 18:28:52] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
 [2026-08-03 18:28:52] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
 [2026-08-03 18:28:52] [INFO] [alzheimer_system]: Patient report #20 saved for patient 'Alice Test'
+[2026-08-03 18:29:26] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 18:29:27] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 18:29:27] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-03 18:30:21] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 18:30:22] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 18:30:22] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-03 18:31:07] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 18:31:07] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 18:31:07] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-03 18:31:32] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 18:31:32] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 18:31:32] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-03 18:32:21] [INFO] [alzheimer_system]: User 'suhan' logged in successfully.
+[2026-08-03 18:33:05] [INFO] [alzheimer_system]: User 'suhan' logged out.
+[2026-08-03 18:33:09] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-03 22:07:47] [INFO] [alzheimer_system]: Saved patient EEG file to static\uploads\healthy_patient_EEG.csv
+[2026-08-03 22:07:47] [INFO] [alzheimer_system]: Saved patient speech audio file to static\uploads\Process-rec-032__SFT.wav
+[2026-08-03 22:07:47] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-08-03 22:07:57] [INFO] [alzheimer_system]: Patient report #21 saved for patient 'PT01'
+[2026-08-03 22:08:50] [INFO] [alzheimer_system]: User 'admin' logged out.
+[2026-08-03 22:08:52] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
