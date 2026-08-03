@@ -1,66 +1,59 @@
 """
-Master Inference Engine (predict.py)
-Loads trained models, preprocessors, and ensemble meta-learners to execute
-end-to-end multimodal predictions for incoming patient data.
+Master Prediction Engine (predict.py)
+Loads pre-trained model artifacts (Cognitive, EEG, Speech) and ensemble fusion module.
+Executes end-to-end multimodal predictions using ONLY user-provided inputs (no dummy fallbacks).
 """
 
 import os
-import glob
 import joblib
 import numpy as np
-import pandas as pd
 from preprocessing.cognitive_preprocessor import CognitivePreprocessor
 from preprocessing.eeg_preprocessor import EEGPreprocessor
 from preprocessing.speech_preprocessor import SpeechPreprocessor
 from ensemble import MultimodalEnsemble
-from utils.explainability import ModelExplainer
-from utils.visualization import PublicationVisualizer
 from utils.logger import logger
 
-def safe_predict_proba(model, X, fallback_val=0.15):
-    """
-    100% Fail-Safe probability calculator resilient to Scikit-Learn cross-version attribute changes.
-    """
-    if model is None:
-        return fallback_val
-    try:
-        if not hasattr(model, 'multi_class'):
-            setattr(model, 'multi_class', 'auto')
-            model.__dict__['multi_class'] = 'auto'
-        if not hasattr(model, '_multi_class'):
-            setattr(model, '_multi_class', 'auto')
-            model.__dict__['_multi_class'] = 'auto'
+def safe_predict_proba(model, X_scaled: np.ndarray, fallback_val: float = 0.50) -> float:
+    """Safely extracts probability from scikit-learn or custom models with cross-version attribute patch."""
+    if hasattr(model, 'predict_proba'):
+        try:
+            if not hasattr(model, 'multi_class'):
+                model.__dict__['multi_class'] = 'auto'
+            if not hasattr(model, '_multi_class'):
+                model.__dict__['_multi_class'] = 'auto'
+            probs = model.predict_proba(X_scaled)
+            if len(probs.shape) == 2 and probs.shape[1] >= 2:
+                return float(probs[0, 1])
+            elif len(probs.shape) == 1:
+                return float(probs[0])
+        except Exception as e:
+            logger.warning(f"predict_proba error: {e}. Attempting decision function.")
             
-        if hasattr(model, 'predict_proba'):
-            probs = model.predict_proba(X)
-            if len(probs.shape) > 1 and probs.shape[1] > 1:
-                return float(np.mean(probs[:, 1]))
-            return float(np.mean(probs))
-        elif hasattr(model, 'predict'):
-            preds = model.predict(X)
-            return float(np.mean(preds))
-    except Exception as err:
-        logger.warning(f"Predict proba version patch catch: {err}")
+    if hasattr(model, 'predict'):
+        pred = model.predict(X_scaled)
+        val = float(pred[0])
+        return 0.85 if val == 1 else 0.15
+
     return fallback_val
 
 class MultimodalPredictor:
     """
-    Unified Inference Engine for Multimodal Alzheimer's Disease Diagnosis.
+    Master Inference Coordinator for Cognitive, EEG, and Speech predictions.
     """
-    def __init__(self, models_dir="saved_models"):
+    def __init__(self, models_dir: str = "saved_models"):
         self.models_dir = models_dir
         self.cog_preprocessor = None
-        self.eeg_preprocessor = None
-        self.speech_preprocessor = None
-        self.speech_selector = None
         self.cog_model = None
+        self.eeg_preprocessor = None
         self.eeg_model = None
+        self.speech_preprocessor = None
         self.speech_model = None
+        self.speech_selector = None
         self.ensemble = None
-        self._load_artifacts()
+        self.load_artifacts()
 
-    def _load_artifacts(self):
-        """Loads all persisted model weights and preprocessor states."""
+    def load_artifacts(self):
+        """Loads all available saved model artifacts."""
         try:
             # 1. Cognitive Artifacts
             cog_prep_path = os.path.join(self.models_dir, "cognitive_preprocessor.pkl")
@@ -68,7 +61,7 @@ class MultimodalPredictor:
             if os.path.exists(cog_prep_path) and os.path.exists(cog_model_path):
                 self.cog_preprocessor = CognitivePreprocessor.load(cog_prep_path)
                 cog_art = joblib.load(cog_model_path)
-                self.cog_model = cog_art['model'] if isinstance(cog_art, dict) else cog_art
+                self.cog_model = cog_art.get('model') if isinstance(cog_art, dict) else cog_art
 
             # 2. EEG Artifacts
             eeg_prep_path = os.path.join(self.models_dir, "eeg_preprocessor.pkl")
@@ -76,7 +69,7 @@ class MultimodalPredictor:
             if os.path.exists(eeg_prep_path) and os.path.exists(eeg_model_path):
                 self.eeg_preprocessor = EEGPreprocessor.load(eeg_prep_path)
                 eeg_art = joblib.load(eeg_model_path)
-                self.eeg_model = eeg_art['model'] if isinstance(eeg_art, dict) else eeg_art
+                self.eeg_model = eeg_art.get('model') if isinstance(eeg_art, dict) else eeg_art
 
             # 3. Speech Artifacts
             speech_prep_path = os.path.join(self.models_dir, "speech_preprocessor.pkl")
@@ -99,10 +92,10 @@ class MultimodalPredictor:
             
             logger.info("Successfully initialized Multimodal Predictor artifacts.")
         except Exception as e:
-            logger.warning(f"Note on artifact loading: {e}. Fallback mechanisms active.")
+            logger.warning(f"Note on artifact loading: {e}.")
 
     def predict_cognitive(self, cog_dict: dict) -> tuple:
-        """Predicts probability for cognitive inputs."""
+        """Predicts probability for user-provided cognitive inputs."""
         mmse = float(cog_dict.get('MMSE', 27))
         cdr = float(cog_dict.get('CDR', 0.0))
         heuristic_p = float(np.clip((30.0 - mmse) / 15.0 * 0.5 + cdr * 0.5, 0.05, 0.95))
@@ -118,28 +111,30 @@ class MultimodalPredictor:
             logger.warning(f"Cognitive transform exception: {e}")
             return heuristic_p, None
 
-    def predict_eeg(self, eeg_file_or_df, baseline_cog_p=0.15) -> tuple:
-        """Predicts probability for raw EEG CSV/EDF file or DataFrame with adaptive baseline if unattached."""
-        adaptive_fallback = float(np.clip(baseline_cog_p * 0.8 + 0.05, 0.05, 0.90))
-
+    def predict_eeg(self, eeg_file_or_df) -> tuple:
+        """
+        Predicts probability for user-provided EEG CSV/EDF file.
+        Returns (None, {}) if no file is provided by the user.
+        """
         if eeg_file_or_df is None or self.eeg_model is None or self.eeg_preprocessor is None:
-            return adaptive_fallback, {}
+            return None, {}
 
         try:
             X_features, avg_psd_dict, _, _ = self.eeg_preprocessor.process_raw_file(eeg_file_or_df)
             X_scaled = self.eeg_preprocessor.transform(X_features)
-            p_eeg = safe_predict_proba(self.eeg_model, X_scaled, fallback_val=adaptive_fallback)
+            p_eeg = safe_predict_proba(self.eeg_model, X_scaled, fallback_val=0.50)
             return p_eeg, avg_psd_dict
         except Exception as e:
             logger.warning(f"EEG prediction exception: {e}")
-            return adaptive_fallback, {}
+            return None, {}
 
-    def predict_speech(self, audio_path_or_bytes, baseline_cog_p=0.15) -> tuple:
-        """Predicts probability for speech audio with adaptive baseline if unattached."""
-        adaptive_fallback = float(np.clip(baseline_cog_p * 0.75 + 0.05, 0.05, 0.90))
-
+    def predict_speech(self, audio_path_or_bytes) -> tuple:
+        """
+        Predicts probability for user-provided speech audio recording.
+        Returns (None, None) if no speech input is provided by the user.
+        """
         if audio_path_or_bytes is None or self.speech_model is None or self.speech_preprocessor is None:
-            return adaptive_fallback, None
+            return None, None
 
         try:
             feat_dict, mel_spec_db = self.speech_preprocessor.process_single_audio(audio_path_or_bytes)
@@ -147,24 +142,25 @@ class MultimodalPredictor:
             X_scaled = self.speech_preprocessor.transform(X_mat)
             if self.speech_selector is not None:
                 X_scaled = self.speech_selector.transform(X_scaled)
-            p_speech = safe_predict_proba(self.speech_model, X_scaled, fallback_val=adaptive_fallback)
+            p_speech = safe_predict_proba(self.speech_model, X_scaled, fallback_val=0.50)
             return p_speech, mel_spec_db
         except Exception as e:
             logger.warning(f"Speech prediction exception: {e}")
-            return adaptive_fallback, None
+            return None, None
 
     def predict_all(self, cog_dict: dict, eeg_file=None, speech_audio=None) -> dict:
         """
-        Executes end-to-end multimodal pipeline.
+        Executes end-to-end multimodal pipeline using ONLY user-provided inputs.
+        No dummy/preloaded fallbacks used when optional scans are omitted.
         """
-        logger.info("Executing end-to-end multimodal prediction...")
+        logger.info("Executing end-to-end multimodal prediction on user inputs...")
 
-        # 1. Cognitive Prediction
+        # 1. Cognitive Prediction (Required user input)
         p_cog, X_cog_scaled = self.predict_cognitive(cog_dict)
 
-        # 2. Adaptive EEG & Speech Predictions
-        p_eeg, psd_dict = self.predict_eeg(eeg_file, baseline_cog_p=p_cog)
-        p_speech, mel_spec_db = self.predict_speech(speech_audio, baseline_cog_p=p_cog)
+        # 2. User-Provided EEG & Speech Predictions (None if not uploaded by user)
+        p_eeg, psd_dict = self.predict_eeg(eeg_file)
+        p_speech, mel_spec_db = self.predict_speech(speech_audio)
 
         # 3. Ensemble Fusion
         if self.ensemble is None:

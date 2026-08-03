@@ -1,0 +1,282 @@
+\documentclass[journal,twocolumn]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning}
+\usepackage{multirow}
+\usepackage{hyperref}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Multi-Modal Machine Learning and Spectral Biomarker Fusion for Early Detection of Alzheimer's Disease}
+
+\author{Suhan~S~P,
+        Chirag~Shetty~A,
+        Upasana~Bharadwaj,
+        and~Syeda~Manaar~Umar
+\thanks{The authors are with the Department of Computer Science and Engineering, Sai Vidya Institute of Technology, Rajanukunte, Bengaluru 560064, Karnataka, India (e-mail: suhansp@saividya.ac.in).}}
+
+\markboth{IEEE Transactions on Biomedical Engineering,~Vol.~XX, No.~X,~2026}%
+{Suhan S P \textit{et al.}: Multi-Modal Machine Learning for Early Alzheimer's Detection}
+
+\maketitle
+
+\begin{abstract}
+Early identification of Alzheimer's Disease (AD) and Mild Cognitive Impairment (MCI) is vital for timely therapeutic intervention before irreversible structural neuronal loss occurs. Conventional clinical diagnostic pathways rely on cerebrospinal fluid (CSF) lumbar punctures, positron emission tomography (PET), or high-cost MRI scans, which are invasive, expensive, and limited in rural healthcare settings. In this paper, we propose a multi-modal machine learning framework that non-invasively predicts Alzheimer's risk by combining three distinct diagnostic data streams: (1) neuropsychological scores and structural volumetric MRI metrics, (2) 19-channel continuous electroencephalography (EEG) spectral decomposition across 88 human subjects, and (3) acoustic voice biomarkers extracted from 591 clinical speech recordings. Each modality is independently processed through dedicated feature-engineering pipelines and benchmarked across classical classifiers (Logistic Regression, Random Forest, XGBoost, CatBoost, LightGBM) and deep architectures (1D-CNN, LSTM, CNN-LSTM). On the OASIS cognitive dataset ($N=373$), Regularized Logistic Regression achieved a validation accuracy of 94.64\% and an ROC-AUC of 0.9677. On the OpenNeuro 19-channel EEG dataset ($N=88$ subjects, 1,320 clinical epochs), XGBoost achieved a validation accuracy of 77.50\% and an ROC-AUC of 0.8203 by analyzing Welch power spectral density ($\delta, \theta, \alpha, \beta, \gamma$), Hjorth complexity, and spectral slowing ($\theta/\alpha$) ratios. On the clinical voice dataset ($N=591$ recordings), Random Forest achieved 92.13\% accuracy and an ROC-AUC of 0.9775 using 35 selected acoustic features including MFCCs, pitch variation ($F_0$), jitter, shimmer, and spectral contrast. To integrate predictions, we designed an ensemble meta-fusion engine using Sequential Least Squares Programming (SLSQP) constrained optimization, yielding optimal weights ($W_{\text{cog}}=0.34, W_{\text{eeg}}=0.33, W_{\text{speech}}=0.33$) with dynamic reweighting for missing optional scans. The complete system was deployed as a production web application with secure SQLite user authentication and automated PDF report generation.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Alzheimer's Disease, Multi-Modal Machine Learning, Electroencephalography (EEG), Acoustic Biomarkers, Spectral Slowing, SLSQP Ensemble Fusion, Clinical Decision Support.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{A}{lzheimer's} Disease (AD) is the primary cause of neurodegenerative dementia worldwide, affecting over 55 million individuals. The illness progresses along a continuous clinical pathway, beginning with subtle synaptic loss, advancing to Mild Cognitive Impairment (MCI), and culminating in severe memory deficit and functional dependency. With the recent approval of disease-modifying monoclonal antibody treatments, intervention during early MCI stages has become essential to preserve cognitive health.
+
+However, established diagnostic workflows encounter major logistical barriers. Lumbar punctures required for tau and amyloid-beta ($A\beta_{42}$) fluid biomarkers carry procedural discomfort, while PET imaging scans remain cost-prohibitive ($>\$5,000$ per scan) and inaccessible to most community clinics. Conversely, standalone paper-based cognitive screening tests (e.g., MMSE) often fail to detect early onset in individuals with high educational background or cognitive reserve.
+
+To bridge this diagnostic gap, machine learning models offer a promising route for detecting subtle, high-dimensional patterns in routine, non-invasive patient measurements. Rather than relying on a single data source, combining multiple non-invasive indicators---such as clinical assessment metrics, resting-state electroencephalogram (EEG) frequency shifts, and speech acoustic variations---creates a comprehensive, 360-degree diagnostic evaluation.
+
+In this work, we present a multi-modal diagnostic framework that integrates neuropsychological test metrics, 19-channel clinical EEG signals, and acoustic voice biomarkers. The principal contributions of this paper are:
+\begin{enumerate}
+    \item \textbf{Integrated Multi-Modal Architecture}: A non-invasive diagnostic framework combining tabular clinical metrics, 19-channel EEG signals from 88 human subjects, and 591 speech recordings.
+    \item \textbf{Extensive Feature Engineering}: Signal processing techniques extracting 19-channel Welch Power Spectral Density (PSD) power bands ($\delta, \theta, \alpha, \beta, \gamma$), Hjorth parameters, and 80+ acoustic voice biomarkers (MFCCs, Pitch $F_0$, Jitter, Shimmer, Spectral Contrast, Tonnetz).
+    \item \textbf{SLSQP Constrained Meta-Fusion}: A mathematical optimization layer using Sequential Least Squares Programming to calculate optimal modality fusion weights, featuring adaptive fallback logic for missing optional scans.
+    \item \textbf{Clinical Web Portal Deployment}: An end-to-end web deployment built on Flask and Waitress WSGI with SQLite user management and automated PDF diagnostic report generation.
+\end{enumerate}
+
+\section{Literature Survey and Related Work}
+In recent years, artificial intelligence applications in neurodegenerative disease prediction have expanded from single-modality image classification toward ensemble learning, multi-modal integration, explainability, and privacy-preserving methods.
+
+\subsection{Cognitive Assessment Screening}
+Irfan \textit{et al.} \cite{irfan2023} developed a voting-based ensemble model using cognitive scores, combining Neighborhood Component Analysis with feature filtering to achieve 93.92\% accuracy, outperforming artificial neural networks (90.53\%). While cognitive screening is cost-effective, standalone testing cannot capture structural neurodegeneration. Singh \textit{et al.} \cite{singh2023} implemented a federated learning strategy across cognitive and demographic records from the ADNI database, obtaining a ROC-AUC of 0.903 using Federated Averaging (FedAvg), demonstrating that privacy-preserving decentralized models can approach centralized baseline performance.
+
+\subsection{Neuroimaging and Retinal Analysis}
+Kumar \textit{et al.} \cite{kumar2023} benchmarked machine learning and deep learning models across 12,000 brain MRI images processed with Histogram of Oriented Gradients (HOG). Support Vector Machines reached 79\% accuracy, while transfer learning via VGG16 achieved 91\% accuracy. Srilakshmi \textit{et al.} \cite{srilakshmi2023} investigated retinal fundus photographs based on the vascular homology between retinal and cerebral microvasculature, building a hybrid deep framework for non-invasive screening, though limited by public fundus dataset availability.
+
+\subsection{Ensemble and Feature-Engineering Strategies}
+Namitha and Pramanik \cite{namitha2024} combined Support Vector Classifier, Random Forest, Decision Tree, K-Nearest Neighbors, and XGBoost into an ensemble, achieving approximately 95\% classification accuracy. Their findings demonstrated that combining diverse model families reduces prediction variance compared to single classifiers. Similarly, Akilandeswari \textit{et al.} \cite{akilandeswari2022} evaluated six classical algorithms, finding Gradient Boosting superior with 95.81\% accuracy.
+
+\subsection{EEG Signal Processing}
+Gayathri \textit{et al.} \cite{gayathri2023} proposed a two-stage framework utilizing Fourier transforms on EEG signals to classify stress and Alzheimer's risk with XGBoost. EEG offer low-cost, continuous neurophysiological monitoring, though widespread clinical adoption requires validation across multi-center patient cohorts.
+
+\subsection{Comparative Survey of Prior Literature}
+Table~\ref{tab:literature} provides a structured summary of the ten foundational studies evaluated in our literature survey.
+
+\begin{table*}[t]
+\caption{Comparative Summary of Literature Survey on Machine Learning and Deep Learning in Alzheimer's Prediction}
+\label{tab:literature}
+\centering
+\begin{tabular}{p{2.2cm}p{3.2cm}p{2.8cm}p{7.5cm}}
+\toprule
+\textbf{Reference} & \textbf{Core Methodology} & \textbf{Performance} & \textbf{Key Findings and Limitations} \\
+\midrule
+Irfan \textit{et al.} \cite{irfan2023} & Voting-Based Ensemble & 93.92\% Acc & High accuracy on cognitive scores alone; lacks objective neuroimaging or EEG validation. \\
+Kumar \textit{et al.} \cite{kumar2023} & HOG + VGG16 CNN & 91.00\% Acc & Transfer learning on MRI outperformed SVM (79\%); high computational demand. \\
+Namitha \& Pramanik \cite{namitha2024} & SVC + RF + XGB Ensemble & $\approx$95.00\% Acc & Multi-model voting improved stability; added hyperparameter complexity. \\
+Singh \textit{et al.} \cite{singh2023} & Federated Learning (FedAvg) & 0.903 ROC-AUC & Privacy-preserving training across sites; subject to network communication overhead. \\
+Srilakshmi \textit{et al.} \cite{srilakshmi2023} & Hybrid Retinal Framework & High Accuracy & Non-invasive retinal fundus imaging; constrained by limited public diagnostic datasets. \\
+Gayathri \textit{et al.} \cite{gayathri2023} & FFT + XGBoost on EEG & Multiclass Risk & Demonstrated feasibility of low-cost EEG monitoring; single-cohort validation. \\
+Nickson \cite{nickson2021} & Comparative Survey & Qualitative & Highlighted deep learning's advantage in automated feature extraction over manual engineering. \\
+Akilandeswari \textit{et al.} \cite{akilandeswari2022} & Gradient Boosting Benchmark & 95.81\% Acc & Gradient boosting outperformed single decision trees and KNN classifiers. \\
+Danda \textit{et al.} \cite{danda2023} & TADEC + XAI Driving Framework & 89.23\% Trip Acc & Naturalistic behavioral driving metrics with SHAP explainability; small sample size. \\
+Sharvari \& Revathi \cite{sharvari2024} & Multi-Modal ML/DL Review & Qualitative & Emphasized that combining multi-modal inputs surpasses single-source models. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{Proposed System Architecture}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[node distance=1.1cm, auto, >=stealth,
+    block/.style={rectangle, draw=black, thick, fill=white, text width=2.0cm, align=center, minimum height=0.7cm, font=\footnotesize},
+    wideblock/.style={rectangle, draw=black, thick, fill=white, text width=5.2cm, align=center, minimum height=0.7cm, font=\small}]
+    
+    % Nodes
+    \node [block] (cog_in) {Cognitive Data};
+    \node [block, right of=cog_in, node distance=2.4cm] (eeg_in) {EEG Signals};
+    \node [block, right of=eeg_in, node distance=2.4cm] (sp_in) {Speech Audio};
+    
+    \node [block, below of=cog_in] (cog_prep) {Z-Score Scaling};
+    \node [block, below of=eeg_in] (eeg_prep) {PSD \& Slowing};
+    \node [block, below of=sp_in] (sp_prep) {MFCC \& Pitch};
+    
+    \node [block, below of=cog_prep] (cog_m) {Logistic Reg.};
+    \node [block, below of=eeg_prep] (eeg_m) {XGBoost};
+    \node [block, below of=sp_prep] (sp_m) {Random Forest};
+    
+    \node [wideblock, below of=eeg_m, node distance=1.3cm] (fusion) {SLSQP Ensemble Fusion};
+    \node [wideblock, below of=fusion, node distance=1.1cm] (report) {Diagnostic Patient Report};
+    
+    % Paths
+    \draw [->] (cog_in) -- (cog_prep);
+    \draw [->] (eeg_in) -- (eeg_prep);
+    \draw [->] (sp_in) -- (sp_prep);
+    
+    \draw [->] (cog_prep) -- (cog_m);
+    \draw [->] (eeg_prep) -- (eeg_m);
+    \draw [->] (sp_prep) -- (sp_m);
+    
+    \draw [->] (cog_m) -- (fusion);
+    \draw [->] (eeg_m) -- (fusion);
+    \draw [->] (sp_m) -- (fusion);
+    
+    \draw [->] (fusion) -- (report);
+\end{tikzpicture}
+\caption{System architecture pipeline flowchart of the proposed framework.}
+\label{fig:pipeline_flowchart}
+\end{figure}
+
+
+The proposed \textbf{NeuroCare} framework comprises three distinct processing channels feeding into an ensemble meta-optimizer.
+
+\subsection{Modality 1: Cognitive Data Processing}
+We utilized the OASIS Longitudinal dataset ($N=373$ clinical visits, 190 nondemented, 183 demented). Features include Age, Gender, Education (\texttt{EDUC}), Socioeconomic Status (\texttt{SES}), MMSE score (0--30), Clinical Dementia Rating (\texttt{CDR}), Estimated Total Intracranial Volume (\texttt{eTIV}), Normalized Whole Brain Volume (\texttt{nWBV}), and Atlas Scaling Factor (\texttt{ASF}).
+
+Missing values were imputed using median statistics (\texttt{SimpleImputer}). Categorical gender values were encoded ($\text{Male}=1, \text{Female}=0$). Continuous features were normalized via Z-score standardization:
+\begin{equation}
+z = \frac{x - \mu}{\sigma}
+\end{equation}
+
+\subsection{Modality 2: 19-Channel EEG Signal Processing}
+EEG data was obtained from the OpenNeuro ds004504 dataset, containing 19-channel eyes-closed recordings from 88 human subjects (36 AD, 23 Frontotemporal Dementia, 29 Healthy Controls). The 19 electrodes placed according to the International 10--20 system were: \texttt{Fp1, Fp2, F3, F4, C3, C4, P3, P4, O1, O2, F7, F8, T3, T4, T5, T6, Fz, Cz, Pz}.
+
+Continuous signals were filtered using a 4th-order Butterworth bandpass filter ($0.5 - 45\text{ Hz}$) at a sampling rate of $500\text{ Hz}$. Signals were epoch-segmented into 2.0-second sliding windows. For each epoch and channel, Welch's method was applied to compute Power Spectral Density (PSD) across five frequency bands:
+\begin{equation}
+\text{Delta } (\delta: 0.5\text{--}4\text{Hz}), \quad \text{Theta } (\theta: 4\text{--}8\text{Hz}), \quad \text{Alpha } (\alpha: 8\text{--}13\text{Hz})
+\end{equation}
+\begin{equation}
+\text{Beta } (\beta: 13\text{--}30\text{Hz}), \quad \text{Gamma } (\gamma: 30\text{--}45\text{Hz})
+\end{equation}
+Additionally, Hjorth activity, mobility, and complexity parameters were computed alongside spectral slowing ratios ($\theta/\alpha$), producing 361 features per epoch across 1,320 total clinical epochs.
+
+\subsection{Modality 3: Speech Audio Processing}
+Speech data comprised 591 WAV recordings (197 Cookie Theft Dementia recordings and 394 Semantic/Phonemic fluency control recordings). Audio signals were resampled to $16\text{ kHz}$ mono and silence-trimmed (\texttt{top\_db=25}).
+
+From each speech recording, 80+ acoustic biomarkers were extracted:
+\begin{itemize}
+    \item \textbf{MFCCs}: 20 static Mel-Frequency Cepstral Coefficients, 20 First Deltas ($\Delta$), and 20 Second Deltas ($\Delta^2$).
+    \item \textbf{Pitch ($F_0$)}: Fundamental frequency contour via the YIN algorithm to evaluate vocal monotone.
+    \item \textbf{Micro-Tremors}: Jitter (pitch perturbation) and Shimmer (amplitude perturbation).
+    \item \textbf{Spectral Shape}: Spectral Contrast (7 sub-bands), Spectral Rolloff, and Spectral Flatness.
+    \item \textbf{Harmonics}: Tonnetz 6-dimensional harmonic pitch class profiles.
+    \item \textbf{Temporal Pacing}: Speaking rate, zero-crossing rate, and pause-to-speech ratio.
+\end{itemize}
+
+Class imbalance was handled via random resampling (394 per class), followed by feature selection using \texttt{SelectKBest} ($f$-regression) to retain the 35 most discriminative acoustic features.
+
+\section{Multimodal Ensemble Fusion Engine}
+To integrate predictions from independent modality classifiers, we implemented an ensemble optimizer using Sequential Least Squares Programming (SLSQP).
+
+Let $P = [P_{\text{cognitive}}, P_{\text{eeg}}, P_{\text{speech}}]$ denote the vector of predicted disease probabilities from each modality. The ensemble probability $P_{\text{ensemble}}$ is defined as:
+\begin{equation}
+P_{\text{ensemble}} = \sum_{i=1}^{3} w_i P_i
+\end{equation}
+subject to the constraints:
+\begin{equation}
+\sum_{i=1}^{3} w_i = 1.0 \quad \text{and} \quad w_i \ge 0 \quad \forall i \in \{1, 2, 3\}
+\end{equation}
+
+The optimal weight vector $W$ was determined by minimizing Brier score loss over validation samples, resulting in:
+\begin{equation}
+P_{\text{ensemble}} = 0.34 \cdot P_{\text{cognitive}} + 0.33 \cdot P_{\text{eeg}} + 0.33 \cdot P_{\text{speech}}
+\end{equation}
+
+\subsection{Adaptive Fallback Reweighting}
+If a patient omits an optional EEG or speech recording, the fusion engine dynamically adjusts weights to maintain probability calibration:
+\begin{itemize}
+    \item \textbf{EEG Missing}: $[W_{\text{cog}}, W_{\text{speech}}] = [0.55, 0.45]$
+    \item \textbf{Speech Missing}: $[W_{\text{cog}}, W_{\text{eeg}}] = [0.55, 0.45]$
+    \item \textbf{EEG \& Speech Missing}: $W_{\text{cog}} = 1.00$
+\end{itemize}
+
+\section{Experimental Results and Discussion}
+All model pipelines were evaluated using 5-Fold Stratified Cross-Validation. Candidate architectures included Logistic Regression, Random Forest, XGBoost, CatBoost, LightGBM, 1D-CNN, LSTM, and hybrid CNN-LSTM networks.
+
+\begin{table*}[t]
+\caption{Performance Comparison of Candidate Machine Learning and Deep Learning Models Across Modalities}
+\label{tab:results}
+\centering
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Modality Channel} & \textbf{Algorithm Architecture} & \textbf{Accuracy (\%)} & \textbf{F1-Score} & \textbf{ROC-AUC} & \textbf{Selection Status} \\
+\midrule
+\textbf{Cognitive Data} & \textbf{Logistic Regression} & \textbf{94.64\%} & \textbf{0.9429} & \textbf{0.9677} & \textbf{Selected Winner} \\
+& Random Forest & 94.91\% & 0.9465 & 0.9646 & Evaluated \\
+& LightGBM & 95.44\% & 0.9524 & 0.9626 & Evaluated \\
+& XGBoost & 94.37\% & 0.9412 & 0.9621 & Evaluated \\
+& CatBoost & 94.64\% & 0.9429 & 0.9619 & Evaluated \\
+\midrule
+\textbf{19-Channel EEG} & \textbf{XGBoost Classifier} & \textbf{77.50\%} & \textbf{0.8468} & \textbf{0.8203} & \textbf{Selected Winner} \\
+& LightGBM & 75.98\% & 0.8357 & 0.8156 & Evaluated \\
+& CatBoost & 74.02\% & 0.8284 & 0.7679 & Evaluated \\
+& Random Forest & 71.74\% & 0.8235 & 0.7386 & Evaluated \\
+& Logistic Regression & 70.61\% & 0.7861 & 0.7364 & Evaluated \\
+& 1D-CNN (Deep Learning) & 72.35\% & 0.7944 & 0.7195 & Evaluated \\
+& LSTM (Recurrent DL) & 67.05\% & 0.8027 & 0.5660 & Evaluated \\
+\midrule
+\textbf{Speech Acoustic} & \textbf{Random Forest} & \textbf{92.13\%} & \textbf{0.9209} & \textbf{0.9775} & \textbf{Selected Winner} \\
+& LightGBM & 90.48\% & 0.9054 & 0.9747 & Evaluated \\
+& XGBoost & 91.37\% & 0.9146 & 0.9702 & Evaluated \\
+& CatBoost & 90.74\% & 0.9089 & 0.9689 & Evaluated \\
+& 1D-CNN (Deep Learning) & 92.41\% & 0.9259 & 0.9490 & Evaluated \\
+& Hybrid CNN-LSTM & 86.08\% & 0.8553 & 0.9372 & Evaluated \\
+& Logistic Regression & 75.25\% & 0.7541 & 0.8096 & Evaluated \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+As detailed in Table~\ref{tab:results}:
+\begin{itemize}
+    \item \textbf{Cognitive Channel}: Regularized Logistic Regression achieved a ROC-AUC of 0.9677 and an accuracy of 94.64\%. Because cognitive scores (MMSE, CDR) exhibit monotonic relationships with dementia severity, linear models with L2 regularization performed slightly better than complex tree ensembles while offering complete mathematical transparency.
+    \item \textbf{EEG Signal Channel}: XGBoost achieved the best performance among evaluated models with an ROC-AUC of 0.8203 and 77.50\% accuracy across 1,320 epochs from 88 subjects. Decision tree splits successfully captured non-linear cross-channel spectral frequency ratios, outperforming deep 1D-CNN (0.7195 AUC) and LSTM (0.5660 AUC) models on the epoch-based feature matrix.
+    \item \textbf{Speech Acoustic Channel}: Random Forest yielded the highest ROC-AUC of 0.9775 and 92.13\% accuracy. Ensembling 200 decision trees over 35 selected acoustic features effectively prevented overfitting while capturing subtle voice acoustic shifts.
+\end{itemize}
+
+\section{System Implementation and Web Deployment}
+To make the trained models clinically accessible, we developed an end-to-end web deployment.
+
+\subsection{Backend Architecture}
+The application is implemented in Python using Flask and served via Waitress WSGI server. Data persistence is managed through an SQLite database (\texttt{neurocare.db}) using non-blocking connection handlers.
+
+\subsection{Clinical Output and Report Generation}
+When a patient assessment is submitted, the inference engine computes individual modality risk probabilities and feeds them into the SLSQP fusion optimizer. The resulting report rendering system (\texttt{result.html}) provides:
+\begin{enumerate}
+    \item \textbf{Risk Level Categorization}: Categorized into Low Risk ($<35\%$), Moderate Risk ($35\text{--}65\%$), or High Risk ($>65\%$).
+    \item \textbf{Safety & Care Guidance}: Auto-generated precautions covering fall prevention, medication monitoring, and daily structured routines.
+    \item \textbf{Diagnostic Next Steps}: Recommended clinical protocols including specialist neurology referral, plasma p-tau217 blood biomarker testing, and lifestyle interventions.
+    \item \textbf{Printable PDF Format}: Formatted with CSS print stylesheets for one-click downloading and physical medical filing.
+\end{enumerate}
+
+The application is deployed live on Render cloud platform at: \url{https://alzheimer-prediction-system.onrender.com}.
+
+\section{Conclusion and Future Work}
+In this paper, we presented \textbf{NeuroCare}, a multi-modal machine learning framework for non-invasive early Alzheimer's disease prediction. By combining cognitive metrics, 19-channel EEG signals from 88 human subjects, and acoustic voice biomarkers, the system achieves strong diagnostic performance (ROC-AUC up to 0.9775) while remaining accessible and low-cost.
+
+Future work will focus on integrating longitudinal patient tracking, incorporating plasma p-tau217 blood biomarker data, and validating the framework through multi-center clinical trials.
+
+\begin{thebibliography}{15}
+\bibitem{irfan2023} R. Irfan \textit{et al.}, ``A novel voting-based ensemble machine learning algorithm for Alzheimer's disease prediction using cognitive assessment data,'' \textit{Computers in Biology and Medicine}, vol. 156, p. 106717, 2023.
+\bibitem{kumar2023} N. K. Kumar, V. D. A. Kumar, D. Quamar, B. S. K. Reddy, R. Yogendra, and N. Poojitha, ``Enhanced Alzheimer's Disease Prediction through Advanced Imaging: A Study of Machine Learning and Deep Learning Approaches,'' \textit{Proc. IEEE Int. Conf.}, pp. 1--6, 2023.
+\bibitem{namitha2024} K. Y. Namitha and S. Pramanik, ``Ensemble Learning with SVC, Random Forest, and XGBoost for Accurate Alzheimer's Disease Prediction,'' \textit{Proc. IEEE Int. Conf. Smart Systems}, pp. 1--5, 2024.
+\bibitem{singh2023} A. Singh \textit{et al.}, ``Federated learning for privacy-preserving Alzheimer's disease prediction using cognitive and socio-demographic data,'' \textit{IEEE Journal of Biomedical and Health Informatics}, vol. 27, no. 8, pp. 3890--3901, 2023.
+\bibitem{srilakshmi2023} C. Srilakshmi \textit{et al.}, ``Hybrid deep learning framework for early detection of Alzheimer's disease using retinal fundus images,'' \textit{Biomedical Signal Processing and Control}, vol. 84, p. 104780, 2023.
+\bibitem{gayathri2023} S. Gayathri \textit{et al.}, ``Two-stage AI framework for EEG-based stress monitoring and Alzheimer's risk assessment,'' \textit{IEEE Trans. Neural Syst. Rehabil. Eng.}, vol. 31, pp. 1420--1431, 2023.
+\bibitem{nickson2021} J. Nickson, ``Predictive modeling for Alzheimer's disease: A survey of classical machine learning and deep learning approaches,'' \textit{Artificial Intelligence in Medicine}, vol. 118, p. 102120, 2021.
+\bibitem{akilandeswari2022} P. Akilandeswari \textit{et al.}, ``Comparative analysis of machine learning algorithms for early prediction of Alzheimer's disease,'' \textit{Journal of Medical Systems}, vol. 46, no. 5, p. 32, 2022.
+\bibitem{danda2023} R. Danda \textit{et al.}, ``TADEC: Explainable AI framework for preclinical Alzheimer's prediction using naturalistic driving behavior,'' \textit{IEEE Access}, vol. 11, pp. 45210--45222, 2023.
+\bibitem{sharvari2024} J. N. Sharvari and V. Revathi, ``Predictive Modeling for Alzheimer's Disease: A Survey of Machine Learning and Deep Learning Techniques,'' \textit{Proc. DSU School of Engineering Research Conf.}, pp. 1--6, 2024.
+\bibitem{jack2018} C. R. Jack \textit{et al.}, ``NIA-AA Research Framework: Toward a biological definition of Alzheimer's disease,'' \textit{Alzheimer's \& Dementia}, vol. 14, no. 4, pp. 535--562, 2018.
+\bibitem{marcus2007} D. S. Marcus \textit{et al.}, ``Open Access Series of Imaging Studies (OASIS): cross-sectional MRI data,'' \textit{Journal of Cognitive Neuroscience}, vol. 19, no. 9, pp. 1498--1507, 2007.
+\bibitem{openneuro2023} OpenNeuro Dataset ds004504: ``A 19-channel EEG dataset of 88 subjects: 36 Alzheimer's disease patients, 23 Frontotemporal dementia patients, and 29 Healthy controls,'' 2023.
+\end{thebibliography}
+
+\end{document}

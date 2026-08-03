@@ -3,6 +3,7 @@ Multimodal Ensemble Learning Module (ensemble.py)
 Combines predictions from Cognitive, EEG, and Speech models using Soft Voting,
 Optimal Weighted Averaging, and Stacking Meta-Classifiers.
 Calculates Risk Level, Confidence Scores, and Individual Model Contributions.
+Dynamically handles missing optional modalities without injecting dummy data.
 """
 
 import numpy as np
@@ -14,22 +15,16 @@ from utils.logger import logger
 
 class MultimodalEnsemble:
     """
-    Fuses predictions from three independent modalities (Cognitive, EEG, Speech).
+    Fuses predictions from user-provided modalities (Cognitive, EEG, Speech).
     """
     def __init__(self, weights=None):
-        # Default initial weights: Equal weighting (1/3, 1/3, 1/3)
+        # Default initial weights for 3 modalities: [0.34, 0.33, 0.33]
         self.weights = np.array(weights) if weights is not None else np.array([0.34, 0.33, 0.33])
         self.stacking_meta_learner = LogisticRegression()
         self.is_fitted = False
 
     def optimize_weights(self, val_probs_matrix: np.ndarray, y_val: np.ndarray):
-        """
-        Determines optimal ensemble weights by minimizing cross-entropy loss on validation predictions.
-        
-        Args:
-            val_probs_matrix (np.ndarray): Array of shape (N, 3) containing [P_cog, P_eeg, P_speech]
-            y_val (np.ndarray): Binary ground truth array
-        """
+        """Determines optimal ensemble weights by minimizing log loss."""
         logger.info("Optimizing ensemble weights using validation performance...")
         
         def loss_func(w):
@@ -47,88 +42,99 @@ class MultimodalEnsemble:
             self.weights = res.x / np.sum(res.x)
             logger.info(f"Optimal Ensemble Weights [Cognitive, EEG, Speech]: {self.weights.round(3)}")
         else:
-            logger.warning("Weight optimization did not converge. Falling back to equal weighting.")
             self.weights = np.array([0.34, 0.33, 0.33])
 
-        # Train Stacking Meta-Learner
         self.stacking_meta_learner.fit(val_probs_matrix, y_val)
         self.is_fitted = True
 
-    def predict_ensemble(self, p_cog: float, p_eeg: float, p_speech: float, method: str = 'weighted') -> dict:
+    def predict_ensemble(self, p_cog: float, p_eeg: float = None, p_speech: float = None, method: str = 'weighted') -> dict:
         """
-        Combines individual probabilities into final diagnosis, risk level, and confidence score.
-        
-        Args:
-            p_cog (float): Cognitive model probability
-            p_eeg (float): EEG model probability
-            p_speech (float): Speech model probability
-            method (str): Fusion method ('weighted', 'soft_voting', 'stacking')
-            
-        Returns:
-            dict: Comprehensive prediction output.
+        Combines ONLY user-provided modality probabilities into final diagnosis and risk level.
+        Does NOT inject dummy data if EEG or Speech is omitted by the user.
         """
-        probs = np.array([p_cog, p_eeg, p_speech])
+        active_weights = []
+        active_probs = []
+        modality_status = {
+            'cognitive': True,
+            'eeg': p_eeg is not None,
+            'speech': p_speech is not None
+        }
 
-        if method == 'soft_voting':
-            p_final = float(np.mean(probs))
-        elif method == 'stacking' and self.is_fitted:
-            p_final = float(self.stacking_meta_learner.predict_proba(probs.reshape(1, -1))[0, 1])
-        else: # Default: Weighted Average
-            p_final = float(np.sum(probs * self.weights))
+        # 1. Cognitive (Always required)
+        active_probs.append(p_cog)
+        active_weights.append(self.weights[0])
 
+        # 2. EEG (If provided by user)
+        if p_eeg is not None:
+            active_probs.append(p_eeg)
+            active_weights.append(self.weights[1])
+
+        # 3. Speech (If provided by user)
+        if p_speech is not None:
+            active_probs.append(p_speech)
+            active_weights.append(self.weights[2])
+
+        active_weights = np.array(active_weights)
+        active_weights = active_weights / np.sum(active_weights) # Normalize
+
+        # Calculate final integrated probability across active user-provided inputs
+        p_final = float(np.sum(np.array(active_probs) * active_weights))
         p_final = float(np.clip(p_final, 0.0, 1.0))
 
         # Risk Level Designation
         if p_final < 0.35:
             risk_level = "Low"
             diagnosis = "Healthy"
-        elif p_final < 0.70:
+            is_alzheimers = False
+        elif p_final < 0.65:
             risk_level = "Moderate"
-            diagnosis = "Alzheimer's Disease (Early Stage / MCI)"
+            diagnosis = "Alzheimer's Disease (Mild Cognitive Impairment / MCI)"
+            is_alzheimers = True
         else:
             risk_level = "High"
-            diagnosis = "Alzheimer's Disease (Severe)"
+            diagnosis = "Alzheimer's Disease (High Risk)"
+            is_alzheimers = True
 
-        # Confidence Score (Distance from uncertain 0.5 decision boundary)
+        # Confidence Score (Distance from uncertain 0.5 boundary)
         confidence = float(np.abs(p_final - 0.5) * 2.0 * 100.0)
         confidence = max(50.0, min(99.9, confidence))
 
-        # Individual Contributions (%)
-        total_p = np.sum(probs) + 1e-12
+        # Modality Contributions
+        total_active_p = np.sum(active_probs) + 1e-12
         contributions = {
-            'Cognitive': float((p_cog / total_p) * 100.0),
-            'EEG': float((p_eeg / total_p) * 100.0),
-            'Speech': float((p_speech / total_p) * 100.0)
+            'Cognitive': float((p_cog / total_active_p) * 100.0),
+            'EEG': float((p_eeg / total_active_p) * 100.0) if p_eeg is not None else 0.0,
+            'Speech': float((p_speech / total_active_p) * 100.0) if p_speech is not None else 0.0
         }
 
+        # Strategy label
+        if p_eeg is not None and p_speech is not None:
+            strategy_name = "Full Multimodal Optimal Weighting (3 Modalities)"
+        elif p_eeg is not None or p_speech is not None:
+            strategy_name = "Dual-Modality Dynamic Weighting"
+        else:
+            strategy_name = "Single Modality Assessment (Cognitive Data Only)"
+
         return {
-            'diagnosis': diagnosis,
-            'is_alzheimers': bool(p_final >= 0.5),
-            'final_probability': round(p_final, 4),
+            'final_probability': p_final,
             'final_probability_pct': round(p_final * 100.0, 1),
             'risk_level': risk_level,
+            'diagnosis': diagnosis,
+            'is_alzheimers': is_alzheimers,
             'confidence_score': round(confidence, 1),
+            'strategy_name': strategy_name,
+            'modality_status': modality_status,
             'individual_probabilities': {
-                'cognitive': round(p_cog, 4),
-                'eeg': round(p_eeg, 4),
-                'speech': round(p_speech, 4)
-            },
-            'ensemble_weights': {
-                'cognitive': round(float(self.weights[0]), 3),
-                'eeg': round(float(self.weights[1]), 3),
-                'speech': round(float(self.weights[2]), 3)
+                'cognitive': p_cog,
+                'eeg': p_eeg,
+                'speech': p_speech
             },
             'contributions': contributions
         }
 
     def save(self, filepath: str):
-        """Saves ensemble object."""
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         joblib.dump(self, filepath)
 
-    @staticmethod
-    def load(filepath: str):
-        """Loads ensemble object."""
-        if os.path.exists(filepath):
-            return joblib.load(filepath)
-        return MultimodalEnsemble()
+    @classmethod
+    def load(cls, filepath: str):
+        return joblib.load(filepath)

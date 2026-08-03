@@ -991,3 +991,133 @@
 [2026-08-02 19:37:55] [INFO] [alzheimer_system]: ==================================================
 [2026-08-02 19:39:05] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
 [2026-08-02 19:39:05] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]:   STARTING COGNITIVE MODEL TRAINING PIPELINE    
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: Loading Cognitive Dataset from cognitive dataset/alzheimer.csv
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: Starting Cognitive preprocessing fit_transform...
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: Saved Cognitive preprocessor to saved_models\cognitive_preprocessor.pkl
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9677
+[2026-08-02 19:42:36] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-08-02 19:42:41] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.9491 | F1: 0.9465 | AUC: 0.9646
+[2026-08-02 19:42:41] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-08-02 19:42:42] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.9437 | F1: 0.9412 | AUC: 0.9621
+[2026-08-02 19:42:42] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-08-02 19:42:45] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9619
+[2026-08-02 19:42:45] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-08-02 19:42:47] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.9544 | F1: 0.9524 | AUC: 0.9626
+[2026-08-02 19:42:47] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'Logistic Regression' with ROC-AUC: 0.9677
+[2026-08-02 19:42:47] [INFO] [alzheimer_system]: Saved best ML model (Logistic Regression) to saved_models\best_cognitive_model.pkl
+[2026-08-02 19:42:48] [INFO] [alzheimer_system]: Generated SHAP explainability plots successfully.
+[2026-08-02 19:42:48] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:42:48] [INFO] [alzheimer_system]:   COGNITIVE TRAINING COMPLETE: Best = Logistic Regression
+[2026-08-02 19:42:48] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:42:55] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:42:55] [INFO] [alzheimer_system]:     STARTING CLINICAL EEG MODEL TRAINING PIPELINE 
+[2026-08-02 19:42:55] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:42:55] [INFO] [alzheimer_system]: Loading 88 human subjects from 'eeg new dataset' with true ground-truth labels...
+[2026-08-02 19:43:23] [INFO] [alzheimer_system]: Extracted EEG Dataset: 1320 total clinical epochs across 361 features.
+[2026-08-02 19:43:23] [INFO] [alzheimer_system]: Ground-Truth Class Balance -> Healthy (0): 435 epochs, Alzheimer's (1): 885 epochs
+[2026-08-02 19:43:24] [INFO] [alzheimer_system]: Saved Healthy Control sample EEG to EEG dataset/single_patient_EEG.csv (status=0)
+[2026-08-02 19:43:24] [INFO] [alzheimer_system]: Saved Alzheimer's Patient sample EEG to EEG dataset/alzheimer_patient_EEG.csv (status=1)
+[2026-08-02 19:43:24] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-08-02 19:43:24] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-08-02 19:43:26] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.7061 | F1: 0.7861 | AUC: 0.7364
+[2026-08-02 19:43:26] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-08-02 19:44:30] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.7174 | F1: 0.8235 | AUC: 0.7386
+[2026-08-02 19:44:30] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-08-02 19:45:20] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.7750 | F1: 0.8468 | AUC: 0.8203
+[2026-08-02 19:45:20] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-08-02 19:46:36] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.7402 | F1: 0.8284 | AUC: 0.7679
+[2026-08-02 19:46:36] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-08-02 19:46:56] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.7598 | F1: 0.8357 | AUC: 0.8156
+[2026-08-02 19:46:56] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'XGBoost' with ROC-AUC: 0.8203
+[2026-08-02 19:46:56] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-08-02 19:47:08] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.6970 | Val F1: 0.7500 | Val AUC: 0.7389
+[2026-08-02 19:47:08] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-08-02 19:47:43] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.6705 | Val F1: 0.8027 | Val AUC: 0.5341
+[2026-08-02 19:47:43] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-08-02 19:47:54] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.6705 | Val F1: 0.8027 | Val AUC: 0.5533
+[2026-08-02 19:47:54] [INFO] [alzheimer_system]: CLINICAL EEG SELECTION: Winner is 'ML (XGBoost)' with ROC-AUC: 0.8203
+[2026-08-02 19:47:54] [INFO] [alzheimer_system]: Saved best EEG model (ML (XGBoost)) to saved_models/best_eeg_model.pkl
+[2026-08-02 19:47:55] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:47:55] [INFO] [alzheimer_system]:   EEG TRAINING COMPLETE: Best = ML (XGBoost) (AUC: 0.8203)
+[2026-08-02 19:47:55] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:48:16] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:48:16] [INFO] [alzheimer_system]:     STARTING HIGH-ACCURACY SPEECH MODEL PIPELINE  
+[2026-08-02 19:48:16] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:48:16] [INFO] [alzheimer_system]: Loaded ALL 591 clinical audio recordings with exact ground truth labels.
+[2026-08-02 19:48:16] [INFO] [alzheimer_system]: Extracting 80+ acoustic features across all 591 recordings...
+[2026-08-02 19:49:30] [INFO] [alzheimer_system]: Raw feature matrix shape: (591, 112) (Class 0: 394, Class 1: 197)
+[2026-08-02 19:49:30] [INFO] [alzheimer_system]: Balanced feature matrix shape: (788, 112) (Class 0: 394, Class 1: 394)
+[2026-08-02 19:49:30] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-08-02 19:49:30] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-08-02 19:49:31] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.7525 | F1: 0.7541 | AUC: 0.8096
+[2026-08-02 19:49:31] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-08-02 19:49:51] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.9213 | F1: 0.9209 | AUC: 0.9775
+[2026-08-02 19:49:51] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-08-02 19:49:56] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.9137 | F1: 0.9146 | AUC: 0.9702
+[2026-08-02 19:49:56] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-08-02 19:50:13] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.9074 | F1: 0.9089 | AUC: 0.9689
+[2026-08-02 19:50:13] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-08-02 19:50:20] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.9048 | F1: 0.9054 | AUC: 0.9747
+[2026-08-02 19:50:20] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'Random Forest' with ROC-AUC: 0.9775
+[2026-08-02 19:50:20] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-08-02 19:50:37] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.9241 | Val F1: 0.9268 | Val AUC: 0.9492
+[2026-08-02 19:50:37] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-08-02 19:51:00] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.7089 | Val F1: 0.7229 | Val AUC: 0.7802
+[2026-08-02 19:51:00] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-08-02 19:51:19] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.8671 | Val F1: 0.8696 | Val AUC: 0.9332
+[2026-08-02 19:51:19] [INFO] [alzheimer_system]: HIGH-ACCURACY SPEECH SELECTION: Winner is 'ML (Random Forest)' with ROC-AUC: 0.9775
+[2026-08-02 19:51:20] [INFO] [alzheimer_system]: Saved best speech model (ML (Random Forest)) to saved_models/best_speech_model.pkl
+[2026-08-02 19:51:20] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:51:20] [INFO] [alzheimer_system]:   SPEECH TRAINING COMPLETE: Best = ML (Random Forest) (AUC: 0.9775)
+[2026-08-02 19:51:20] [INFO] [alzheimer_system]: ==================================================
+[2026-08-02 19:56:41] [INFO] [alzheimer_system]: Database initialized successfully.
+[2026-08-02 19:56:41] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-02 19:56:42] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-02 19:56:42] [INFO] [alzheimer_system]: Starting NeuroCare Patient Portal & Admin Server on http://127.0.0.1:5000 ...
+[2026-08-02 19:56:51] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-02 20:00:33] [INFO] [alzheimer_system]: Received patient assessment request...
+[2026-08-02 20:00:33] [INFO] [alzheimer_system]: Saved patient EEG file to static/uploads\healthy_patient_EEG.csv
+[2026-08-02 20:00:33] [INFO] [alzheimer_system]: Saved patient speech audio file to static/uploads\recorded_speech.wav
+[2026-08-02 20:00:33] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-08-02 20:00:36] [ERROR] [alzheimer_system]: Error loading audio file path: Error opening 'static/uploads\\recorded_speech.wav': Format not recognised.
+[2026-08-02 20:00:38] [INFO] [alzheimer_system]: Patient report #15 saved to database for patient 'Patient new'
+[2026-08-03 08:44:42] [INFO] [alzheimer_system]: Database initialized successfully.
+[2026-08-03 08:44:42] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 08:44:44] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 08:44:44] [INFO] [alzheimer_system]: Starting NeuroCare Patient Portal & Admin Server on http://127.0.0.1:5000 ...
+[2026-08-03 08:45:03] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-03 08:47:52] [INFO] [alzheimer_system]: Received patient assessment request...
+[2026-08-03 08:47:52] [INFO] [alzheimer_system]: Saved patient EEG file to static/uploads\healthy_patient_EEG.csv
+[2026-08-03 08:47:52] [INFO] [alzheimer_system]: Saved patient speech audio file to static/uploads\recorded_speech.wav
+[2026-08-03 08:47:52] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-08-03 08:48:00] [ERROR] [alzheimer_system]: Error loading audio file path: Error opening 'static/uploads\\recorded_speech.wav': Format not recognised.
+[2026-08-03 08:48:08] [INFO] [alzheimer_system]: Patient report #16 saved to database for patient 'Sujan'
+[2026-08-03 08:50:44] [INFO] [alzheimer_system]: User 'suhan' logged in successfully.
+[2026-08-03 10:30:12] [INFO] [alzheimer_system]: Database initialized successfully.
+[2026-08-03 10:30:12] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 10:30:13] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 10:30:13] [INFO] [alzheimer_system]: Starting NeuroCare Patient Portal & Admin Server on http://127.0.0.1:5000 ...
+[2026-08-03 10:31:18] [INFO] [alzheimer_system]: Database initialized successfully.
+[2026-08-03 10:31:18] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 10:31:18] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 10:31:18] [INFO] [alzheimer_system]: Starting NeuroCare Patient Portal & Admin Server on http://127.0.0.1:5000 ...
+[2026-08-03 10:31:33] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-03 10:51:58] [INFO] [alzheimer_system]: User 'suhan' logged in successfully.
+[2026-08-03 10:53:23] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-03 10:53:50] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-03 10:55:11] [INFO] [alzheimer_system]: User 'suhan' logged in successfully.
+[2026-08-03 11:02:14] [INFO] [alzheimer_system]: Received patient assessment request...
+[2026-08-03 11:02:14] [INFO] [alzheimer_system]: Saved patient EEG file to static/uploads\alzheimer_patient_EEG.csv
+[2026-08-03 11:02:14] [INFO] [alzheimer_system]: Saved patient speech audio file to static/uploads\recorded_speech.wav
+[2026-08-03 11:02:14] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction...
+[2026-08-03 11:02:20] [ERROR] [alzheimer_system]: Error loading audio file path: Error opening 'static/uploads\\recorded_speech.wav': Format not recognised.
+[2026-08-03 11:02:25] [INFO] [alzheimer_system]: Patient report #17 saved to database for patient 'Patient6'
+[2026-08-03 18:23:57] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 18:24:01] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 18:24:01] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-08-03 18:24:01] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
