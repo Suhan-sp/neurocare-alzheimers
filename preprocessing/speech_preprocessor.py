@@ -18,7 +18,7 @@ import soundfile as sf
 import joblib
 import os
 import io
-from feature_extraction.speech_features import extract_speech_biomarkers
+from feature_extraction.speech_features import extract_speech_features
 from utils.logger import logger
 
 class SpeechPreprocessor:
@@ -92,7 +92,7 @@ class SpeechPreprocessor:
             y_trimmed = y
 
         # 2. Extract Acoustic Biomarkers
-        feat_dict, mel_spec_db = extract_speech_biomarkers(y_trimmed, fs=self.target_sr)
+        feat_dict, mel_spec_db = extract_speech_features(y_trimmed, fs=self.target_sr)
 
         if not self.feature_names:
             self.feature_names = list(feat_dict.keys())
