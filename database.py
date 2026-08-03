@@ -69,7 +69,6 @@ def init_db():
         logger.info("Default Admin account created: username='admin', password='admin123'")
 
     conn.close()
-    logger.info("Database initialized successfully.")
 
 def register_user(username, email, password, role='user'):
     """Registers a new user account."""
@@ -114,6 +113,10 @@ def save_patient_report(user_id, patient_name, age, gender, report_dict):
     
     ind = report_dict.get('individual_probabilities', {})
     
+    cog_p = float(ind.get('cognitive') or 0.0)
+    eeg_p = float(ind.get('eeg') or 0.0)
+    sp_p = float(ind.get('speech') or 0.0)
+
     cursor.execute('''
         INSERT INTO reports (
             user_id, patient_name, age, gender, diagnosis,
@@ -129,9 +132,9 @@ def save_patient_report(user_id, patient_name, age, gender, report_dict):
         float(report_dict.get('final_probability_pct', 0.0)),
         report_dict.get('risk_level', 'Low'),
         float(report_dict.get('confidence_score', 90.0)),
-        float(ind.get('cognitive', 0.0)),
-        float(ind.get('eeg', 0.0)),
-        float(ind.get('speech', 0.0))
+        cog_p,
+        eeg_p,
+        sp_p
     ))
     conn.commit()
     report_id = cursor.lastrowid
@@ -151,11 +154,11 @@ def get_user_reports(user_id):
     return reports
 
 def get_all_reports_admin():
-    """Retrieves all patient reports across the entire system for Admin view."""
+    """Retrieves all patient reports across system for Admin Dashboard."""
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT r.*, u.username as account_username, u.email as account_email
+        SELECT r.*, u.username as creator_username
         FROM reports r
         LEFT JOIN users u ON r.user_id = u.id
         ORDER BY r.created_at DESC
@@ -165,26 +168,22 @@ def get_all_reports_admin():
     return reports
 
 def get_admin_stats():
-    """Returns summary statistics for the Admin Dashboard."""
+    """Calculates overall system statistics for Admin Dashboard."""
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT COUNT(*) as total_users FROM users WHERE role = 'user'")
-    total_users = cursor.fetchone()['total_users']
-    
-    cursor.execute("SELECT COUNT(*) as total_reports FROM reports")
-    total_reports = cursor.fetchone()['total_reports']
-    
-    cursor.execute("SELECT COUNT(*) as high_risk FROM reports WHERE risk_level = 'High'")
-    high_risk = cursor.fetchone()['high_risk']
+    cursor.execute("SELECT COUNT(*) FROM users")
+    total_users = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) as healthy FROM reports WHERE risk_level = 'Low'")
-    healthy = cursor.fetchone()['healthy']
-    
+    cursor.execute("SELECT COUNT(*) FROM reports")
+    total_reports = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM reports WHERE is_alzheimers = 1 OR risk_level IN ('High', 'Moderate')")
+    alzheimer_cases = cursor.fetchone()[0]
+
     conn.close()
     return {
         'total_users': total_users,
         'total_reports': total_reports,
-        'high_risk': high_risk,
-        'healthy': healthy
+        'alzheimer_cases': alzheimer_cases
     }
