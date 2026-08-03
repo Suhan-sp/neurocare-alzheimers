@@ -61,12 +61,12 @@
                 <div class="form-group-grid">
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label class="form-label" for="PatientName">Patient Full Name / ID</label>
-                        <input type="text" id="PatientName" name="PatientName" class="form-input" placeholder="e.g. John Doe / PT-8401" value="" required>
+                        <input type="text" id="PatientName" name="PatientName" class="form-input"  value="" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="Age">Age (Years)</label>
-                        <input type="number" id="Age" name="Age" class="form-input" placeholder="e.g. 72" min="40" max="105" value="" required>
+                        <input type="number" id="Age" name="Age" class="form-input"  min="40" max="105" value="" required>
                     </div>
 
                     <div class="form-group">
@@ -80,7 +80,7 @@
 
                     <div class="form-group">
                         <label class="form-label" for="EDUC">Education (Years)</label>
-                        <input type="number" id="EDUC" name="EDUC" class="form-input" placeholder="e.g. 14" min="0" max="25" value="" required>
+                        <input type="number" id="EDUC" name="EDUC" class="form-input" min="0" max="25" value="" required>
                         <span class="form-hint">Total years of formal education</span>
                     </div>
 
@@ -96,7 +96,7 @@
 
                     <div class="form-group">
                         <label class="form-label" for="MMSE">Cognitive Test Score (0 - 30)</label>
-                        <input type="number" id="MMSE" name="MMSE" class="form-input" placeholder="24-30 = Normal, <24 = Impaired" min="0" max="30" value="" required>
+                        <input type="number" id="MMSE" name="MMSE" class="form-input"  min="0" max="30" value="" required>
                         <span class="form-hint">Standard MMSE Score (0 to 30)</span>
                     </div>
 
@@ -166,7 +166,7 @@
 
             <!-- Submit Button -->
             <button type="submit" class="btn-submit">
-                <i class="fa-solid fa-microchip"></i> Execute Diagnostic Assessment
+                <i class="fa-solid fa-microchip"></i> Generate Report
             </button>
         </form>
     </div>

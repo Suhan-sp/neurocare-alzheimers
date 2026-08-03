@@ -178,7 +178,7 @@ def get_admin_stats():
     cursor.execute("SELECT COUNT(*) FROM reports")
     total_reports = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM reports WHERE is_alzheimers = 1 OR risk_level IN ('High', 'Moderate')")
+    cursor.execute("SELECT COUNT(*) FROM reports WHERE risk_level IN ('High', 'Moderate')")
     alzheimer_cases = cursor.fetchone()[0]
 
     conn.close()
