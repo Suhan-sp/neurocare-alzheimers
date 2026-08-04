@@ -1181,3 +1181,13 @@
 [2026-08-03 22:29:53] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
 [2026-08-03 22:29:53] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
 [2026-08-03 22:29:53] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-03 22:31:39] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 22:31:39] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 22:31:39] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-03 22:32:38] [INFO] [alzheimer_system]: User 'suhan' logged in successfully.
+[2026-08-03 22:33:21] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-03 22:33:21] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-03 22:33:21] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-04 21:45:02] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-04 21:45:08] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-04 21:45:08] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
