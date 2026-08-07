@@ -2,12 +2,14 @@
 Flask Web Application Server (app.py)
 Provides web interface, authentication, assessment submission, and report rendering.
 Strictly requires user inputs with zero hardcoded/dummy fallbacks.
+Includes EEG Report Digitization module for scanned PDF and image hospital reports.
 """
 
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 import os
 import secrets
 from predict import MultimodalPredictor
+from services.eeg_digitizer import EEGReportDigitizer
 from database import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin, get_admin_stats
 from utils.logger import logger
 
@@ -23,8 +25,9 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload limit
 # Initialize SQLite database
 init_db()
 
-# Initialize Multimodal Predictor Engine
+# Initialize Multimodal Predictor Engine & EEG Digitizer
 predictor = MultimodalPredictor()
+eeg_digitizer_service = EEGReportDigitizer()
 
 def safe_float(val, default_val=0.0):
     try:
@@ -93,6 +96,24 @@ def logout():
     logger.info(f"User '{user_name}' logged out.")
     return redirect(url_for('login'))
 
+@app.route('/eeg-digitizer', methods=['GET', 'POST'])
+def eeg_digitizer_route():
+    """Renders and processes EEG Report Digitization for scanned PDF/Image reports."""
+    if request.method == 'POST':
+        if 'reportFile' not in request.files or request.files['reportFile'].filename == '':
+            return render_template('eeg_digitizer.html', error="Please select a scanned PDF or Image EEG report file.")
+            
+        file = request.files['reportFile']
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+        logger.info(f"Saved scanned EEG report for digitization to {file_path}")
+
+        # Digitize Report
+        df_digitized, metadata = eeg_digitizer_service.digitize_report(file_path)
+        return render_template('eeg_digitizer.html', digitized=True, metadata=metadata, df_samples=df_digitized.head(5).to_dict(orient='records'))
+
+    return render_template('eeg_digitizer.html', digitized=False)
+
 @app.route('/predict', methods=['POST'])
 def predict_route():
     """Executes prediction on strict user inputs without dummy fallbacks."""
@@ -133,7 +154,7 @@ def predict_route():
             'ASF': asf
         }
 
-        # 2. Parse Optional User EEG File Upload (None if not provided)
+        # 2. Parse Optional User EEG File (EDF/CSV signal OR scanned PDF/Image report)
         eeg_file_path = None
         if 'eegFile' in request.files and request.files['eegFile'].filename != '':
             file = request.files['eegFile']

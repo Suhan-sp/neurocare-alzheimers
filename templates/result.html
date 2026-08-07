@@ -143,9 +143,18 @@
                     <div class="meter-bar">
                         <div class="meter-fill" style="width: {{ (res.individual_probabilities.eeg * 100)|round(1) }}%; background: linear-gradient(135deg, #0ea5e9, #6366f1);"></div>
                     </div>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                        Analyzed 16-channel EEG file uploaded by user.
-                    </p>
+                    {% if res.eeg_digitization_meta and res.eeg_digitization_meta.is_digitized %}
+                        <div style="margin-top: 0.5rem; font-size: 0.82rem; color: var(--accent-teal); font-weight: 600;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Input: {{ res.eeg_digitization_meta.input_type }}
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                            Extraction Confidence: <strong>{{ res.eeg_digitization_meta.confidence_label }} ({{ res.eeg_digitization_meta.confidence_score }}%)</strong>
+                        </div>
+                    {% else %}
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                            Analyzed 16-channel EEG signal file (EDF/CSV) uploaded by user.
+                        </p>
+                    {% endif %}
                 {% else %}
                     <div class="meter-bar" style="background: rgba(255,255,255,0.05);">
                         <div class="meter-fill" style="width: 0%; background: transparent;"></div>

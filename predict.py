@@ -2,14 +2,17 @@
 Master Prediction Engine (predict.py)
 Loads pre-trained model artifacts (Cognitive, EEG, Speech) and ensemble fusion module.
 Executes end-to-end multimodal predictions using ONLY user-provided inputs (no dummy fallbacks).
+Supports digital EDF/CSV files as well as scanned PDF/Image EEG report digitization.
 """
 
 import os
 import joblib
+import pandas as pd
 import numpy as np
 from preprocessing.cognitive_preprocessor import CognitivePreprocessor
 from preprocessing.eeg_preprocessor import EEGPreprocessor
 from preprocessing.speech_preprocessor import SpeechPreprocessor
+from services.eeg_digitizer import EEGReportDigitizer
 from ensemble import MultimodalEnsemble
 from utils.logger import logger
 
@@ -38,7 +41,7 @@ def safe_predict_proba(model, X_scaled: np.ndarray, fallback_val: float = 0.50) 
 
 class MultimodalPredictor:
     """
-    Master Inference Coordinator for Cognitive, EEG, and Speech predictions.
+    Master Inference Coordinator for Cognitive, EEG (EDF or PDF/Image Report Digitization), and Speech predictions.
     """
     def __init__(self, models_dir: str = "saved_models"):
         self.models_dir = models_dir
@@ -50,6 +53,7 @@ class MultimodalPredictor:
         self.speech_model = None
         self.speech_selector = None
         self.ensemble = None
+        self.eeg_digitizer = EEGReportDigitizer()
         self.load_artifacts()
 
     def load_artifacts(self):
@@ -113,20 +117,31 @@ class MultimodalPredictor:
 
     def predict_eeg(self, eeg_file_or_df) -> tuple:
         """
-        Predicts probability for user-provided EEG CSV/EDF file.
-        Returns (None, {}) if no file is provided by the user.
+        Predicts probability for user-provided EEG file (EDF/CSV or PDF/Image scanned report).
+        Automatically digitizes PDF/Image reports into 1D numerical signals.
+        Returns (None, {}, {}) if no file is provided by the user.
         """
         if eeg_file_or_df is None or self.eeg_model is None or self.eeg_preprocessor is None:
-            return None, {}
+            return None, {}, {}
+
+        digitization_meta = {'is_digitized': False, 'input_type': 'Digital EEG Signal (EDF/CSV)'}
 
         try:
+            # Check if file is a scanned PDF / Image report
+            if isinstance(eeg_file_or_df, str) and os.path.exists(eeg_file_or_df):
+                ext = os.path.splitext(eeg_file_or_df)[1].lower()
+                if ext in ['.pdf', '.jpg', '.jpeg', '.png']:
+                    logger.info(f"Detected scanned EEG report file ({ext}). Initiating EEG Report Digitizer Service...")
+                    eeg_file_or_df, digitization_meta = self.eeg_digitizer.digitize_report(eeg_file_or_df)
+
             X_features, avg_psd_dict, _, _ = self.eeg_preprocessor.process_raw_file(eeg_file_or_df)
             X_scaled = self.eeg_preprocessor.transform(X_features)
             p_eeg = safe_predict_proba(self.eeg_model, X_scaled, fallback_val=0.50)
-            return p_eeg, avg_psd_dict
+            return p_eeg, avg_psd_dict, digitization_meta
+
         except Exception as e:
             logger.warning(f"EEG prediction exception: {e}")
-            return None, {}
+            return None, {}, digitization_meta
 
     def predict_speech(self, audio_path_or_bytes) -> tuple:
         """
@@ -159,7 +174,7 @@ class MultimodalPredictor:
         p_cog, X_cog_scaled = self.predict_cognitive(cog_dict)
 
         # 2. User-Provided EEG & Speech Predictions (None if not uploaded by user)
-        p_eeg, psd_dict = self.predict_eeg(eeg_file)
+        p_eeg, psd_dict, eeg_digitization_meta = self.predict_eeg(eeg_file)
         p_speech, mel_spec_db = self.predict_speech(speech_audio)
 
         # 3. Ensemble Fusion
@@ -167,5 +182,6 @@ class MultimodalPredictor:
             self.ensemble = MultimodalEnsemble()
             
         result = self.ensemble.predict_ensemble(p_cog, p_eeg, p_speech, method='weighted')
+        result['eeg_digitization_meta'] = eeg_digitization_meta
 
         return result

@@ -2506,3 +2506,18 @@
 [2026-08-07 10:15:20] [INFO] [alzheimer_system]: ==================================================
 [2026-08-07 10:15:20] [INFO] [alzheimer_system]:   SPEECH TRAINING COMPLETE: Best = ML (Random Forest) (AUC: 0.9806)
 [2026-08-07 10:15:20] [INFO] [alzheimer_system]: ==================================================
+[2026-08-07 10:15:45] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-07 10:15:45] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-07 10:15:45] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-07 10:19:32] [INFO] [alzheimer_system]: ==================================================
+[2026-08-07 10:19:32] [INFO] [alzheimer_system]:     STARTING HIGH-ACCURACY SPEECH MODEL PIPELINE  
+[2026-08-07 10:19:32] [INFO] [alzheimer_system]: ==================================================
+[2026-08-07 10:19:32] [INFO] [alzheimer_system]: Loaded ALL 591 clinical audio recordings with exact ground truth labels.
+[2026-08-07 10:19:32] [INFO] [alzheimer_system]: Extracting 80+ acoustic features across all 591 recordings...
+[2026-08-07 11:43:52] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-07 11:43:53] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-07 11:43:53] [INFO] [alzheimer_system]: Detected scanned EEG report file (.png). Initiating EEG Report Digitizer Service...
+[2026-08-07 11:43:54] [WARNING] [alzheimer_system]: EEG prediction exception: X has 304 features, but StandardScaler is expecting 361 features as input.
+[2026-08-07 11:44:32] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-07 11:44:32] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-07 11:44:32] [INFO] [alzheimer_system]: Detected scanned EEG report file (.png). Initiating EEG Report Digitizer Service...
