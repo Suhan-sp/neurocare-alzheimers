@@ -115,35 +115,19 @@
 
             <!-- Step 2: EEG Brain Scan Upload (Optional) -->
             <div class="glass-panel" style="padding: 1.75rem;">
-                <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <i class="fa-solid fa-wave-square title-icon" style="color: var(--accent-teal);"></i>
-                        <h2>2. 16-Channel EEG Signal / Scanned Report (Optional Input)</h2>
-                    </div>
-                    <a href="/eeg-digitizer" class="btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.82rem; text-decoration: none;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Open Dedicated EEG Digitizer Page
-                    </a>
+                <div class="section-title">
+                    <i class="fa-solid fa-wave-square title-icon" style="color: var(--accent-teal);"></i>
+                    <h2>2. 16-Channel EEG Signal / Scanned Report (Optional Input)</h2>
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                    Choose your preferred input type: Upload a digital signal file or a scanned hospital EEG report (PDF / Image).
+                    Upload a digital signal file (EDF/CSV) or a scanned hospital EEG paper report (PDF, JPG, PNG). Scanned reports will be automatically digitized and analyzed.
                 </p>
 
-                <!-- Dual Upload Options -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 0.75rem;">
-                    <!-- Option A: Digital Signal (Recommended) -->
-                    <div class="file-dropzone" id="eegDropzone" onclick="document.getElementById('eegFile').click()">
-                        <i class="fa-solid fa-file-csv dropzone-icon" style="color: var(--accent-teal);"></i>
-                        <div style="font-weight: 600; margin-bottom: 0.25rem;">Option A: Digital EDF / CSV Signal File</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Formats: .csv, .edf (Recommended)</div>
-                        <input type="file" id="eegFile" name="eegFile" accept=".csv,.edf,.pdf,.jpg,.jpeg,.png" style="display: none;" onchange="updateFileName(this, 'eegFileName')">
-                    </div>
-
-                    <!-- Option B: Scanned Report (PDF / Image) -->
-                    <div class="file-dropzone" onclick="document.getElementById('eegFile').click()" style="border-color: rgba(99, 102, 241, 0.4);">
-                        <i class="fa-solid fa-file-pdf dropzone-icon" style="color: var(--accent-indigo);"></i>
-                        <div style="font-weight: 600; margin-bottom: 0.25rem;">Option B: Upload EEG Report (PDF / Image)</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Formats: .pdf, .jpg, .jpeg, .png (Auto-Digitized)</div>
-                    </div>
+                <div class="file-dropzone" id="eegDropzone" onclick="document.getElementById('eegFile').click()">
+                    <i class="fa-solid fa-wave-square dropzone-icon" style="color: var(--accent-teal);"></i>
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">Click or Drag & Drop EEG File / Scanned Hospital Report</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Supported Formats: .edf, .csv, .pdf, .jpg, .jpeg, .png (Max 50MB)</div>
+                    <input type="file" id="eegFile" name="eegFile" accept=".csv,.edf,.pdf,.jpg,.jpeg,.png" style="display: none;" onchange="updateFileName(this, 'eegFileName')">
                 </div>
                 <div id="eegFileName" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--accent-teal); font-weight: 500;"></div>
             </div>

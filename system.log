@@ -2534,3 +2534,11 @@
 [2026-08-07 12:01:01] [INFO] [alzheimer_system]: Patient report #25 saved for patient 'Patient1'
 [2026-08-07 12:21:17] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
 [2026-08-07 12:21:17] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-07 12:21:45] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-07 12:21:46] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-07 12:21:46] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-07 12:23:36] [INFO] [alzheimer_system]: User 'suhan' logged in successfully.
+[2026-08-07 12:23:56] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-07 12:34:55] [INFO] [alzheimer_system]: Saved scanned EEG report for digitization to static\uploads\sample_eeg_report.png
+[2026-08-07 12:37:08] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-07 12:37:09] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.

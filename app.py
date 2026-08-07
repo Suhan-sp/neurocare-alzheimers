@@ -98,27 +98,6 @@ def logout():
     logger.info(f"User '{user_name}' logged out.")
     return redirect(url_for('login'))
 
-@app.route('/eeg-digitizer', methods=['GET', 'POST'])
-def eeg_digitizer_route():
-    """Renders and processes EEG Report Digitization for scanned PDF/Image reports."""
-    if not session.get('user'):
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        if 'reportFile' not in request.files or request.files['reportFile'].filename == '':
-            return render_template('eeg_digitizer.html', error="Please select a scanned PDF or Image EEG report file.")
-            
-        file = request.files['reportFile']
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(file_path)
-        logger.info(f"Saved scanned EEG report for digitization to {file_path}")
-
-        # Digitize Report
-        df_digitized, metadata = eeg_digitizer_service.digitize_report(file_path)
-        return render_template('eeg_digitizer.html', digitized=True, metadata=metadata, df_samples=df_digitized.head(5).to_dict(orient='records'))
-
-    return render_template('eeg_digitizer.html', digitized=False)
-
 @app.route('/predict', methods=['POST'])
 def predict_route():
     """Executes prediction on strict user inputs without dummy fallbacks."""
