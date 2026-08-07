@@ -2542,3 +2542,16 @@
 [2026-08-07 12:34:55] [INFO] [alzheimer_system]: Saved scanned EEG report for digitization to static\uploads\sample_eeg_report.png
 [2026-08-07 12:37:08] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
 [2026-08-07 12:37:09] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-07 12:37:34] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-07 12:37:35] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-07 12:37:35] [INFO] [alzheimer_system]: Starting production WSGI Waitress server on http://0.0.0.0:5000
+[2026-08-07 12:38:18] [INFO] [alzheimer_system]: User 'admin' logged in successfully.
+[2026-08-07 12:39:26] [INFO] [alzheimer_system]: Saved patient EEG file to static\uploads\sample_eeg_report.png
+[2026-08-07 12:39:26] [INFO] [alzheimer_system]: Saved patient speech audio file to static\uploads\healthy_voice_sample.wav
+[2026-08-07 12:39:26] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-08-07 12:39:26] [INFO] [alzheimer_system]: Cognitive Model (Logistic Regression) Output Probability: 0.222 (22.2%)
+[2026-08-07 12:39:26] [INFO] [alzheimer_system]: Detected scanned EEG report file (.png). Initiating EEG Report Digitizer Service...
+[2026-08-07 12:39:32] [INFO] [alzheimer_system]: EEG Model (XGBoost Classifier) Output Probability: 0.622 (62.2%)
+[2026-08-07 12:39:36] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.361 (36.1%)
+[2026-08-07 12:39:36] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 40.0% (Moderate Risk)
+[2026-08-07 12:39:36] [INFO] [alzheimer_system]: Patient report #26 saved for patient 'Patient2'
