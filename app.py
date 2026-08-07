@@ -2,7 +2,7 @@
 Flask Web Application Server (app.py)
 Provides web interface, authentication, assessment submission, and report rendering.
 Strictly requires user inputs with zero hardcoded/dummy fallbacks.
-Includes EEG Report Digitization module for scanned PDF and image hospital reports.
+Enforces authentication: Users must log in before accessing the assessment portal.
 """
 
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
@@ -37,7 +37,9 @@ def safe_float(val, default_val=0.0):
 
 @app.route('/')
 def index():
-    """Renders main patient assessment form."""
+    """Renders main patient assessment form. Redirects to login if user is not authenticated."""
+    if not session.get('user'):
+        return redirect(url_for('login'))
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -99,6 +101,9 @@ def logout():
 @app.route('/eeg-digitizer', methods=['GET', 'POST'])
 def eeg_digitizer_route():
     """Renders and processes EEG Report Digitization for scanned PDF/Image reports."""
+    if not session.get('user'):
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         if 'reportFile' not in request.files or request.files['reportFile'].filename == '':
             return render_template('eeg_digitizer.html', error="Please select a scanned PDF or Image EEG report file.")
@@ -117,6 +122,9 @@ def eeg_digitizer_route():
 @app.route('/predict', methods=['POST'])
 def predict_route():
     """Executes prediction on strict user inputs without dummy fallbacks."""
+    if not session.get('user'):
+        return redirect(url_for('login'))
+
     try:
         patient_name = request.form.get('PatientName', '').strip() or 'Anonymous Patient'
         

@@ -172,10 +172,20 @@ class MultimodalPredictor:
 
         # 1. Cognitive Prediction (Required user input)
         p_cog, X_cog_scaled = self.predict_cognitive(cog_dict)
+        logger.info(f"Cognitive Model (Logistic Regression) Output Probability: {p_cog:.3f} ({p_cog*100:.1f}%)")
 
         # 2. User-Provided EEG & Speech Predictions (None if not uploaded by user)
         p_eeg, psd_dict, eeg_digitization_meta = self.predict_eeg(eeg_file)
+        if p_eeg is not None:
+            logger.info(f"EEG Model (XGBoost Classifier) Output Probability: {p_eeg:.3f} ({p_eeg*100:.1f}%)")
+        else:
+            logger.info("EEG Model: Omitted by user")
+
         p_speech, mel_spec_db = self.predict_speech(speech_audio)
+        if p_speech is not None:
+            logger.info(f"Speech Model (Random Forest) Output Probability: {p_speech:.3f} ({p_speech*100:.1f}%)")
+        else:
+            logger.info("Speech Model: Omitted by user")
 
         # 3. Ensemble Fusion
         if self.ensemble is None:
@@ -183,5 +193,7 @@ class MultimodalPredictor:
             
         result = self.ensemble.predict_ensemble(p_cog, p_eeg, p_speech, method='weighted')
         result['eeg_digitization_meta'] = eeg_digitization_meta
+
+        logger.info(f"SLSQP Ensemble Fusion Calculated Risk Index: {result['final_probability_pct']}% ({result['risk_level']} Risk)")
 
         return result
