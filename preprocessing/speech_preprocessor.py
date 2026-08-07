@@ -18,6 +18,7 @@ import soundfile as sf
 import joblib
 import os
 import io
+from sklearn.preprocessing import StandardScaler
 from feature_extraction.speech_features import extract_speech_features
 from utils.logger import logger
 
@@ -91,15 +92,27 @@ class SpeechPreprocessor:
         except Exception:
             y_trimmed = y
 
-        # 2. Extract Acoustic Biomarkers
-        feat_dict, mel_spec_db = extract_speech_features(y_trimmed, fs=self.target_sr)
+        # 2. Extract Acoustic Biomarkers (using sr parameter)
+        feat_dict, mel_spec_db = extract_speech_features(y_trimmed, sr=self.target_sr)
 
         if not self.feature_names:
             self.feature_names = list(feat_dict.keys())
 
         return feat_dict, mel_spec_db
 
+    def fit(self, X_features: np.ndarray):
+        """Fits StandardScaler on feature matrix."""
+        self.scaler = StandardScaler()
+        self.scaler.fit(X_features)
+        return self
+
+    def fit_transform(self, X_features: np.ndarray) -> np.ndarray:
+        """Fits StandardScaler and transforms feature matrix."""
+        self.scaler = StandardScaler()
+        return self.scaler.fit_transform(X_features)
+
     def transform(self, X_features: np.ndarray) -> np.ndarray:
+        """Transforms feature matrix using fitted scaler."""
         if self.scaler is None:
             return X_features
         return self.scaler.transform(X_features)

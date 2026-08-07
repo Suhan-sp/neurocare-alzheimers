@@ -190,9 +190,9 @@ def admin_dashboard():
 if __name__ == '__main__':
     from waitress import serve
     print("\n" + "="*65)
-    print("  🚀 SERVER IS LIVE AND RUNNING PERFECTLY!")
-    print("  👉 Open your web browser (Chrome/Edge/Firefox) and go to:")
-    print("     http://127.0.0.1:5000   or   http://localhost:5000")
+    print("  [SUCCESS] SERVER IS LIVE AND READY FOR USER INPUTS!")
+    print("  --> Open your web browser (Chrome/Edge/Firefox) and go to:")
+    print("      http://127.0.0.1:5000   or   http://localhost:5000")
     print("="*65 + "\n")
     logger.info("Starting production WSGI Waitress server on http://0.0.0.0:5000")
     serve(app, host="0.0.0.0", port=5000)
