@@ -14,9 +14,19 @@
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
+\makeatletter
+\newcommand{\linebreakand}{%
+  \end{@IEEEauthorhalign}
+  \hfill\mbox{}\par
+  \mbox{}\hfill\begin{@IEEEauthorhalign}
+}
+\makeatother
+
 \begin{document}
 
-\title{NeuroCare: Multimodal Early Prediction of Alzheimer's Disease Using Fused Cognitive, EEG, and Acoustic Biomarkers}
+\title{NeuroCare: Multimodal Early Prediction of Alzheimer's Disease Using Fused Cognitive, EEG, and Acoustic Biomarkers\\
+
+}
 
 \author{
 \IEEEauthorblockN{1\textsuperscript{st} First Author Name}
@@ -30,21 +40,21 @@ author1@email.com}
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
 author2@email.com}
-\and
-\IEEEauthorblockN{3\textsuperscript{rd} Guide / Mentor Name}
-\IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
+\linebreakand
+\IEEEauthorblockN{\small 3\textsuperscript{rd} Guide / Mentor Name}
+\IEEEauthorblockA{\small \textit{Dept. of Computer Science \& Engineering} \\
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
 guide@email.com}
 \and
-\IEEEauthorblockN{\\[1.2ex] 3\textsuperscript{rd} Guide / Mentor Name}
-\IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
+\IEEEauthorblockN{\small 3\textsuperscript{rd} Guide / Mentor Name}
+\IEEEauthorblockA{\small \textit{Dept. of Computer Science \& Engineering} \\
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
 guide@email.com}
 \and
-\IEEEauthorblockN{\\[1.2ex] 3\textsuperscript{rd} Guide / Mentor Name}
-\IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
+\IEEEauthorblockN{\small 3\textsuperscript{rd} Guide / Mentor Name}
+\IEEEauthorblockA{\small \textit{Dept. of Computer Science \& Engineering} \\
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
 guide@email.com}
@@ -257,7 +267,33 @@ SHapley Additive exPlanations (SHAP) are computed to quantify feature contributi
 \end{equation}
 
 \section{Implementation}
-NeuroCare is implemented as a modular Python-Flask framework. The system incorporates MNE-Python for 19-channel EEG filtering, Librosa for voice acoustic processing, Scikit-Learn/XGBoost/LightGBM/CatBoost for model training, and SHAP for explainable AI plot generation. A responsive web portal allows clinicians to enter patient metrics, upload `.csv`/`.edf` EEG files, upload scanned PDF/image reports, or record live voice samples directly in the browser.
+NeuroCare is implemented as a modular, production-grade Python framework built on top of Flask and served via the Waitress Web Server Gateway Interface (WSGI) on port 5000. The implementation architecture spans specialized bio-signal libraries, computer vision engines, machine learning pipelines, and database security protocols.
+
+\subsection{Software Stack and Framework Integration}
+The system leverages a decoupled, multi-library Python architecture:
+\begin{itemize}
+    \item \textbf{Web Engine}: Developed in Flask 3.0.0 with a Waitress WSGI production server handling asynchronous request concurrency and static asset streaming.
+    \item \textbf{Bio-Signal Processing}: \texttt{MNE-Python} and \texttt{SciPy} execute 4th-order zero-phase digital Butterworth bandpass filtering (0.5--45 Hz) and Welch Power Spectral Density (PSD) periodogram estimation across canonical bands ($\delta, \theta, \alpha, \beta, \gamma$).
+    \item \textbf{Speech Acoustic Analysis}: \texttt{Librosa} and \texttt{SoundFile} extract 80+ speech parameters including 20 static MFCCs, 20 $\Delta$, 20 $\Delta^2$, YIN fundamental frequency ($F_0$), Jitter, Shimmer, and 6-dimensional Tonnetz harmonic pitch class profiles.
+    \item \textbf{Machine Learning \& Serialization}: \texttt{Scikit-Learn}, \texttt{XGBoost}, \texttt{CatBoost}, and \texttt{LightGBM} train individual modality classifiers. Pre-trained model weights and scaling preprocessors are serialized as binary artifacts (\texttt{.pkl}) using \texttt{Joblib} for sub-millisecond inference loading.
+\end{itemize}
+
+\subsection{Computer Vision \& OCR Subsystem Implementation}
+To process printed or scanned paper EEG reports from hospitals where digital \texttt{.edf} files are unavailable, the system integrates a dedicated \texttt{EEGReportDigitizer} service:
+\begin{itemize}
+    \item \textbf{PDF Document Rendering}: \texttt{PyMuPDF} (\texttt{fitz}) converts multi-page scanned PDF reports into 150 DPI RGB pixel matrices, while \texttt{Pillow} handles JPG, JPEG, and PNG images.
+    \item \textbf{Optical Character Recognition (OCR)}: \texttt{EasyOCR} parses clinical findings, detecting key diagnostic phrases such as \textit{background alpha rhythm}, \textit{theta slowing}, \textit{generalized slowing}, and \textit{epileptiform discharges}.
+    \item \textbf{Grid Localization \& Bounding Box Binarization}: OpenCV (\texttt{cv2}) applies adaptive Gaussian thresholding and contour area filtering to isolate the central graph grid while stripping patient metadata headers and footers.
+    \item \textbf{Skeletonization \& Signal Reconstruction}: \texttt{scikit-image} (\texttt{skimage.morphology.skeletonize}) thins binary plotted curves into 1-pixel skeletons. Median column-wise displacement tracking extracts continuous time-series arrays $y(t)$ across 19 standard electrodes, resampled to $500\text{ Hz}$ with amplitude variance scaling to microvolts ($\mu\text{V}$).
+\end{itemize}
+
+\subsection{Data Security, Authentication, \& Database Schema}
+System security and clinical data persistence are managed through a structured backend design:
+\begin{itemize}
+    \item \textbf{Mandatory Session Authentication}: Role-based access control enforces session authentication. Unauthenticated requests to root or prediction endpoints (\texttt{/predict}) trigger mandatory HTTP 302 redirects to the \texttt{/login} portal.
+    \item \textbf{Database Persistence}: Patient records and diagnostic evaluation outputs are persisted in a local SQLite database (\texttt{neurocare.db}) using parameterized SQL queries to prevent SQL injection vulnerabilities.
+    \item \textbf{Automated Diagnostic Reporting}: The inference engine generates dynamic HTML/CSS diagnostic reports (\texttt{result.html}) providing individual modality risk bars, integrated SLSQP risk scores, clinical safety guidelines, and printable PDF export capability.
+\end{itemize}
 
 \section{Results and Discussion}
 The system was evaluated using 5-fold cross-validation across single modalities and the multimodal ensemble.
