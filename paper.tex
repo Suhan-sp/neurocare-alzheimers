@@ -7,7 +7,7 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{tikz}
-\usetikzlibrary{shapes,arrows,positioning}
+\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds}
 \usepackage{multirow}
 \usepackage{hyperref}
 
@@ -16,42 +16,48 @@
 
 \begin{document}
 
-\title{NeuroCare: Multimodal Early Prediction of Alzheimer's Disease Using Fused Cognitive, EEG, and Acoustic Biomarkers with Integrated Report Digitization}
+\title{NeuroCare: Multimodal Early Prediction of Alzheimer's Disease Using Fused Cognitive, EEG, and Acoustic Biomarkers}
 
 \author{
-\IEEEauthorblockN{1\textsuperscript{st} Suhan S P}
+\IEEEauthorblockN{1\textsuperscript{st} First Author Name}
 \IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
-suhansp@saividya.ac.in}
+author1@email.com}
 \and
-\IEEEauthorblockN{2\textsuperscript{nd} Chirag Shetty A}
+\IEEEauthorblockN{2\textsuperscript{nd} Second Author Name}
 \IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
-chirag.shetty@saividya.ac.in}
+author2@email.com}
 \and
-\IEEEauthorblockN{3\textsuperscript{rd} Upasana Bharadwaj}
+\IEEEauthorblockN{3\textsuperscript{rd} Guide / Mentor Name}
 \IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
-upasana.b@saividya.ac.in}
+guide@email.com}
 \and
-\IEEEauthorblockN{4\textsuperscript{th} Syeda Manaar Umar}
+\IEEEauthorblockN{3\textsuperscript{rd} Guide / Mentor Name}
 \IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
 \textit{Sai Vidya Institute of Technology}\\
 Bengaluru, India \\
-syeda.manaar@saividya.ac.in}
+guide@email.com}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Guide / Mentor Name}
+\IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering} \\
+\textit{Sai Vidya Institute of Technology}\\
+Bengaluru, India \\
+guide@email.com}
 }
 
 \maketitle
 
 \begin{abstract}
-Early detection of Alzheimer's Disease (AD) is critical for timely therapeutic interventions and slowing cognitive decay. However, existing diagnostic paradigms rely heavily on expensive, invasive neuroimaging (PET/MRI) or spinal taps, while single-modality automated screening methods suffer from limited diagnostic robustness across diverse clinical presentations. Furthermore, in resource-constrained hospital settings, original digital signal recordings (e.g., EDF files) are frequently unavailable, leaving clinicians with only printed or scanned paper EEG reports. This paper presents NeuroCare, a non-invasive, multimodal diagnostic decision-support platform that synthesizes three distinct biomedical channels: neuropsychological cognitive metrics, 19-channel continuous electroencephalogram (EEG) signals, and acoustic speech biomarkers, augmented by a novel EEG Report Digitization engine. Cognitive features processed from the OASIS longitudinal dataset ($N = 373$) yield a baseline Regularized Logistic Regression model with 94.64\% validation accuracy (ROC-AUC: 0.9677). 19-channel continuous EEG signals ($N = 88$ human subjects, 1,320 clinical epochs) undergo Butterworth bandpass filtering (0.5--45 Hz), Welch Power Spectral Density (PSD) decomposition ($\delta, \theta, \alpha, \beta, \gamma$), Hjorth complexity analysis, and spectral slowing ratio ($\theta/\alpha$) computation, achieving 77.50\% accuracy (ROC-AUC: 0.8203) using an optimized XGBoost classifier. Acoustic speech features (80+ parameters including 20 MFCCs, pitch $F_0$, micro-tremor Jitter/Shimmer, and pause ratios) derived from 591 clinical recordings achieve 93.02\% accuracy (ROC-AUC: 0.9806) with a Random Forest model. To bridge the physical-digital gap, an automated Computer Vision and OCR digitization module processes scanned PDF/image EEG reports via PyMuPDF, EasyOCR, bounding-box grid localization, and skeletonization contour tracking to reconstruct 1D numerical time-series signals with an extraction confidence metric (achieving 95.0\% extraction confidence). A constrained Sequential Least Squares Programming (SLSQP) ensemble layer fuses cross-modality probability distributions ($W_{\text{cognitive}} = 0.34, W_{\text{eeg}} = 0.33, W_{\text{speech}} = 0.33$), complemented by SHapley Additive exPlanations (SHAP) for patient-level clinical interpretability. Experimental validation demonstrates that the multimodal ensemble achieves 96.85\% accuracy and an ROC-AUC of 0.9882, establishing a scalable, web-deployable framework for non-invasive early AD screening.
+Early detection of Alzheimer's Disease (AD) is critical for timely therapeutic interventions and slowing cognitive decay. However, existing diagnostic paradigms rely heavily on expensive, invasive neuroimaging (PET/MRI) or spinal taps, while single-modality automated screening methods suffer from limited diagnostic robustness across diverse clinical presentations. This paper presents NeuroCare, a non-invasive, multimodal diagnostic decision-support system that synthesizes three distinct biomedical channels: neuropsychological cognitive metrics, 19-channel continuous electroencephalogram (EEG) signals, and acoustic speech biomarkers, enhanced by a computer-vision EEG report digitization engine. Cognitive features are processed from the OASIS longitudinal dataset ($N = 373$), yielding a baseline Regularized Logistic Regression model with 94.64\% validation accuracy (ROC-AUC: 0.9677). 19-channel continuous EEG signals ($N = 88$ human subjects, 1,320 clinical epochs) undergo Butterworth bandpass filtering (0.5--45 Hz), Welch Power Spectral Density (PSD) decomposition ($\delta, \theta, \alpha, \beta, \gamma$), Hjorth complexity analysis, and spectral slowing ratio ($\theta/\alpha$) computation, achieving 77.50\% accuracy (ROC-AUC: 0.8203) using an optimized XGBoost classifier. For clinics lacking digital signal files, a vision skeletonization digitizer parses scanned paper/PDF EEG reports with 95.0\% extraction confidence. Acoustic speech features (80+ parameters including 20 MFCCs, pitch $F_0$, micro-tremor Jitter/Shimmer, and pause ratios) derived from 591 clinical recordings achieve 93.02\% accuracy (ROC-AUC: 0.9806) with a Random Forest model. A constrained Sequential Least Squares Programming (SLSQP) ensemble layer fuses cross-modality probability distributions ($W_{\text{cognitive}} = 0.34, W_{\text{eeg}} = 0.33, W_{\text{speech}} = 0.33$), complemented by SHapley Additive exPlanations (SHAP) for patient-level clinical interpretability. Experimental validation demonstrates that the multimodal ensemble achieves 96.85\% accuracy and an ROC-AUC of 0.9882, surpassing individual single-modality baselines and establishing a scalable, web-deployable framework for non-invasive early AD screening.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Alzheimer's Disease, Multimodal Fusion, EEG Signal Processing, EEG Report Digitization, Computer Vision Skeletonization, Acoustic Biomarkers, Cognitive Risk Scoring, Machine Learning, SHAP Explainability.
+Alzheimer's Disease, Multimodal Fusion, EEG Signal Processing, Acoustic Biomarkers, Cognitive Risk Scoring, Machine Learning, SHAP Explainability, Welch PSD, Hjorth Parameters.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -61,16 +67,15 @@ Traditional diagnostic pipelines rely on Positron Emission Tomography (PET), str
 
 Recent advancements in computer-aided diagnosis have investigated automated single-modality predictors, such as deep learning on structural MRI, spectral analysis of resting-state EEG, or voice acoustic feature modeling. However, single-modality systems face fundamental limitations:
 \begin{enumerate}
-    \item \textbf{Cognitive scores alone} cannot distinguish early pathophysiological neural changes prior to overt behavioral symptoms.
-    \item \textbf{EEG signals} are susceptible to muscle/blink artifacts and environmental noise, limiting standalone sensitivity.
-    \item \textbf{Speech biomarkers} vary across language, dialect, and emotional states, introducing individual variability.
-    \item \textbf{Physical Report Constraint}: In primary care facilities and rural clinics, raw digital EEG recordings (EDF/CSV files) are rarely archived or accessible to patients, who typically receive only printed paper reports or scanned PDF summaries.
+    \item Cognitive scores alone cannot distinguish early pathophysiological neural changes prior to overt behavioral symptoms.
+    \item EEG signals are susceptible to muscle/blink artifacts and environmental noise, limiting standalone sensitivity.
+    \item Speech biomarkers vary across language, dialect, and emotional states, introducing individual variability.
 \end{enumerate}
 
-To overcome these vulnerabilities, this work presents \textbf{NeuroCare}, an end-to-end multimodal predictive platform that integrates cognitive profiling, 19-channel EEG signal analysis, and speech acoustic processing, empowered by a dedicated computer-vision-based EEG Report Digitization module. By combining non-invasive biomarkers spanning psychological, neurophysiological, and vocal domains into a unified ensemble framework with SHAP interpretability, NeuroCare achieves robust, accessible, and explainable diagnostic assessments suitable for clinical screening environments.
+To overcome these single-modality vulnerabilities, this work presents \textbf{NeuroCare}, an end-to-end multimodal predictive platform that integrates cognitive profiling, 19-channel EEG signal analysis, and speech acoustic processing, complemented by a computer-vision paper report digitization module. By combining non-invasive biomarkers spanning psychological, neurophysiological, and vocal domains into a unified ensemble framework with SHAP interpretability, NeuroCare achieves robust, accessible, and explainable diagnostic assessments suitable for clinical screening environments.
 
 \section{Literature Survey}
-The research landscape in automated Alzheimer's Disease diagnosis has evolved significantly across cognitive scoring, signal processing, acoustic feature extraction, computer vision digitization, and machine learning fusion techniques.
+The research landscape in automated Alzheimer's Disease diagnosis has evolved significantly across cognitive scoring, signal processing, acoustic feature extraction, and machine learning fusion techniques.
 
 \subsection{Cognitive \& Neuropsychological Assessment}
 Early computational models focused on longitudinal clinical records. Marcus \textit{et al.} introduced the Open Access Series of Imaging Studies (OASIS), establishing standardized benchmarks for Mini-Mental State Examination (MMSE), Clinical Dementia Rating (CDR), and normalized Whole Brain Volume (nWBV) metrics \cite{marcus2007}. Machine learning classifiers on OASIS data demonstrated high accuracy for advanced stages \cite{tadepalli2021}; however, reliance on static cognitive scores fails to capture real-time functional neurophysiological degeneration.
@@ -85,53 +90,73 @@ Vocal degradation serves as an early indicator of cognitive impairment. Research
 While single-modality systems show promise, multimodal data fusion offers significantly higher diagnostic resilience. Modern multimodal architectures typically utilize early feature concatenation, late decision-level soft voting, or stacking meta-classifiers \cite{achmad2023}. Moreover, the integration of Explainable Artificial Intelligence (XAI) frameworks, specifically SHapley Additive exPlanations (SHAP), has become essential for clinical adoption, enabling physicians to trace automated risk scores back to underlying patient-specific biomarkers \cite{lundberg2017}, \cite{liu2023}.
 
 \section{Methodology}
-The proposed \textbf{NeuroCare} architecture operates through a multi-stage modular pipeline incorporating data acquisition, specialized signal/acoustic preprocessing, computer-vision report digitization, feature engineering, independent model optimization, constrained multimodal ensemble fusion, and XAI report generation.
+The proposed \textbf{NeuroCare} architecture operates through a multi-stage modular pipeline incorporating data acquisition, specialized signal/acoustic preprocessing, feature engineering, independent model optimization, constrained multimodal ensemble fusion, and XAI report generation.
 
-\begin{figure}[t]
+\begin{figure}[h!]
 \centering
-\begin{tikzpicture}[node distance=1.1cm, auto, >=stealth,
-    block/.style={rectangle, draw=black, thick, fill=white, text width=2.0cm, align=center, minimum height=0.7cm, font=\footnotesize},
-    wideblock/.style={rectangle, draw=black, thick, fill=white, text width=5.4cm, align=center, minimum height=0.7cm, font=\small}]
-    
-    % Nodes
-    \node [block] (cog_in) {Cognitive Data\\(OASIS Dataset)};
-    \node [block, right of=cog_in, node distance=2.4cm] (eeg_in) {19-Ch EEG / Scanned Report};
-    \node [block, right of=eeg_in, node distance=2.4cm] (sp_in) {Speech Audio\\(WAV Files)};
-    
-    \node [block, below of=cog_in] (cog_prep) {Z-Score Scaling};
-    \node [block, below of=eeg_in] (eeg_prep) {OCR + OpenCV Skeletonization};
-    \node [block, below of=sp_in] (sp_prep) {MFCC \& Pitch};
-    
-    \node [block, below of=cog_prep] (cog_m) {Logistic Reg.\\$P_{\text{cognitive}}$};
-    \node [block, below of=eeg_prep] (eeg_m) {XGBoost\\$P_{\text{eeg}}$};
-    \node [block, below of=sp_m, right of=cog_m, node distance=4.8cm] (sp_m) {Random Forest\\$P_{\text{speech}}$};
-    
-    \node [wideblock, below of=eeg_m, node distance=1.3cm] (fusion) {Dynamic SLSQP Soft Voting Ensemble\\$P_{\text{ensemble}} = 0.34 P_{\text{cog}} + 0.33 P_{\text{eeg}} + 0.33 P_{\text{speech}}$};
-    \node [wideblock, below of=fusion, node distance=1.1cm] (report) {Risk Stratification \& Clinical SHAP XAI\\Low ($<35\%$) | Moderate ($35\text{--}65\%$) | High ($>65\%$) Risk};
-    
-    % Paths
-    \draw [->] (cog_in) -- (cog_prep);
-    \draw [->] (eeg_in) -- (eeg_prep);
-    \draw [->] (sp_in) -- (sp_prep);
-    
-    \draw [->] (cog_prep) -- (cog_m);
-    \draw [->] (eeg_prep) -- (eeg_m);
-    \draw [->] (sp_prep) -- (sp_m);
-    
-    \draw [->] (cog_m) -- (fusion);
-    \draw [->] (eeg_m) -- (fusion);
-    \draw [->] (sp_m) -- (fusion);
-    
-    \draw [->] (fusion) -- (report);
+\begin{tikzpicture}[
+    node distance=0.85cm and 0.4cm,
+    font=\sffamily\scriptsize,
+    inbox/.style={draw=blue!80!black, fill=blue!5, rounded corners=3pt, thick, text width=2.1cm, align=center, minimum height=0.75cm},
+    layerbox/.style={draw=emerald!80!black, fill=emerald!5, rounded corners=4pt, thick, text width=7.8cm, align=center, minimum height=0.8cm},
+    modelbox/.style={draw=indigo!80!black, fill=indigo!5, rounded corners=3pt, thick, text width=2.1cm, align=center, minimum height=0.75cm},
+    ensbox/.style={draw=purple!80!black, fill=purple!5, rounded corners=4pt, thick, text width=7.8cm, align=center, minimum height=0.8cm},
+    outbox/.style={draw=rose!80!black, fill=red!5, rounded corners=4pt, thick, text width=7.8cm, align=center, minimum height=0.8cm},
+    arrow/.style={->, >=stealth, thick, color=gray!80!black}
+]
+
+    % Row 1: Inputs
+    \node[inbox] (cog_in) {Cognitive Data\\(OASIS Dataset)};
+    \node[inbox, right=0.35cm of cog_in] (eeg_in) {19-Ch EEG Signal\\(OpenNeuro / PDF)};
+    \node[inbox, right=0.35cm of eeg_in] (sp_in) {Speech Audio\\(WAV Files)};
+
+    % Row 2: Preprocessing Layer
+    \node[layerbox, below=0.6cm of eeg_in] (prep_layer) {
+        \textbf{Feature Extraction \& Processing Layer}\\
+        Cognitive Scaling \;|\; 0.5--45Hz Bandpass, PSD, Hjorth, Vision Digitizer \;|\; MFCC, Pitch, Jitter, Shimmer
+    };
+
+    % Row 3: Machine Learning Models
+    \node[modelbox, below=0.6cm of prep_layer.south west, anchor=north west, xshift=0.15cm] (m_cog) {Logistic Reg.\\$P_{\text{cognitive}}$};
+    \node[modelbox, below=0.6cm of prep_layer] (m_eeg) {XGBoost\\$P_{\text{eeg}}$};
+    \node[modelbox, below=0.6cm of prep_layer.south east, anchor=north east, xshift=-0.15cm] (m_sp) {Random Forest\\$P_{\text{speech}}$};
+
+    % Row 4: SLSQP Ensemble Layer
+    \node[ensbox, below=0.6cm of m_eeg] (ens_layer) {
+        \textbf{Dynamic SLSQP Soft Voting Ensemble}\\
+        $P_{\text{ensemble}} = 0.34 P_{\text{cognitive}} + 0.33 P_{\text{eeg}} + 0.33 P_{\text{speech}}$
+    };
+
+    % Row 5: Risk Stratification
+    \node[outbox, below=0.55cm of ens_layer] (out_layer) {
+        \textbf{Risk Stratification \& Clinical SHAP XAI}\\
+        Low ($< 35\%$) \;|\; Moderate ($35\text{--}65\%$) \;|\; High ($> 65\%$) Risk
+    };
+
+    % Connectors
+    \draw[arrow] (cog_in) -- (cog_in |- prep_layer.north);
+    \draw[arrow] (eeg_in) -- (prep_layer.north);
+    \draw[arrow] (sp_in) -- (sp_in |- prep_layer.north);
+
+    \draw[arrow] (prep_layer.south -| m_cog) -- (m_cog);
+    \draw[arrow] (prep_layer.south) -- (m_eeg);
+    \draw[arrow] (prep_layer.south -| m_sp) -- (m_sp);
+
+    \draw[arrow] (m_cog) -- (m_cog |- ens_layer.north);
+    \draw[arrow] (m_eeg) -- (ens_layer.north);
+    \draw[arrow] (m_sp) -- (m_sp |- ens_layer.north);
+
+    \draw[arrow] (ens_layer) -- (out_layer);
+
 \end{tikzpicture}
-\caption{System Architecture and Multimodal Processing Pipeline of NeuroCare incorporating Scanned EEG Report Digitization.}
+\caption{System Architecture and Multimodal Processing Pipeline of NeuroCare.}
 \label{fig:architecture}
 \end{figure}
 
 \subsection{Modality 1: Cognitive Data Pipeline}
 The cognitive evaluation layer processes $N = 373$ clinical patient records from the OASIS longitudinal dataset.
 \begin{itemize}
-    \item \textbf{Features}: Age, Gender, Education (\texttt{EDUC}), Socioeconomic Status (\texttt{SES}), Mini-Mental State Examination (\texttt{MMSE}), Clinical Dementia Rating (\texttt{CDR}), Estimated Total Intracranial Volume (\texttt{eTIV}), Normalized Whole Brain Volume (\texttt{nWBV}), and Atlas Scaling Factor (\texttt{ASF}).
+    \item \textbf{Features}: Age, Gender, Education (EDUC), Socioeconomic Status (SES), Mini-Mental State Examination (MMSE), Clinical Dementia Rating (CDR), Estimated Total Intracranial Volume (eTIV), Normalized Whole Brain Volume (nWBV), and Atlas Scaling Factor (ASF).
     \item \textbf{Preprocessing}: Median imputation for missing SES values, standard z-score normalization:
     \begin{equation}
     x' = \frac{x - \mu}{\sigma}
@@ -163,49 +188,35 @@ The EEG processing engine handles 19-channel scalp recordings ($N = 88$ human su
     \item \textbf{Classification}: Processed using an optimized XGBoost gradient boosting classifier.
 \end{enumerate}
 
-\subsection{EEG Report Digitization \& Computer Vision Pipeline}
-To support clinical environments lacking native digital EDF signal files, NeuroCare incorporates an automated \texttt{EEGReportDigitizer} engine that recovers 1D continuous numerical signals from scanned PDF or image reports.
+\subsection{EEG Report Digitization Subsystem}
+For clinics lacking raw digital signal files, NeuroCare incorporates a vision-based \texttt{EEGReportDigitizer} module.
 
-\begin{figure}[h]
+\begin{figure}[h!]
 \centering
-\begin{tikzpicture}[node distance=0.95cm, auto, >=stealth,
-    stepbox/.style={rectangle, draw=black, thick, fill=gray!10, text width=7.0cm, align=left, minimum height=0.6cm, font=\footnotesize}]
-    
-    \node [stepbox] (s1) {\textbf{Step 1: Document Rendering \& PyMuPDF Text Ingestion}\\Converts PDF pages into 150 DPI RGB matrices; extracts raw text.};
-    \node [stepbox, below of=s1] (s2) {\textbf{Step 2: EasyOCR Text Parsing}\\Extracts clinical keywords: \textit{alpha rhythm, theta slowing, impression}.};
-    \node [stepbox, below of=s2] (s3) {\textbf{Step 3: OpenCV Waveform Region Bounding Box}\\Adaptive thresholding isolates graph grid, cropping headers/footers.};
-    \node [stepbox, below of=s3] (s4) {\textbf{Step 4: Skeletonization \& Peak Tracking}\\Applies \texttt{skimage.morphology.skeletonize} to extract 1D curves $y(t)$.};
-    \node [stepbox, below of=s4] (s5) {\textbf{Step 5: Signal Scaling \& 19-Channel Resampling}\\Standardizes amplitude to $\mu\text{V}$; resamples at $500\text{ Hz}$ across 19 channels.};
-    
-    \draw [->] (s1) -- (s2);
-    \draw [->] (s2) -- (s3);
-    \draw [->] (s3) -- (s4);
-    \draw [->] (s4) -- (s5);
+\begin{tikzpicture}[
+    node distance=0.55cm,
+    font=\sffamily\tiny,
+    procbox/.style={draw=teal!80!black, fill=teal!5, rounded corners=3pt, thick, text width=7.8cm, align=left, minimum height=0.55cm},
+    arrow/.style={->, >=stealth, thick, color=teal!80!black}
+]
+
+    \node[procbox] (p1) {\textbf{Step 1: Document Rendering \& PyMuPDF Page Ingestion}\\Converts PDF pages into 150 DPI RGB matrices; decodes JPG/PNG image files.};
+    \node[procbox, below=0.45cm of p1] (p2) {\textbf{Step 2: EasyOCR Text Findings Extraction}\\Extracts clinical keywords: \textit{alpha rhythm, theta slowing, epileptiform discharges, impression}.};
+    \node[procbox, below=0.45cm of p2] (p3) {\textbf{Step 3: OpenCV Waveform Region Bounding Box}\\Adaptive thresholding isolates graph grid, cropping top 15\% (header) and bottom 10\% (footer).};
+    \node[procbox, below=0.45cm of p3] (p4) {\textbf{Step 4: Skeletonization \& Peak Tracking}\\Applies \texttt{skimage.morphology.skeletonize} to extract 1D displacement curves $y(t)$.};
+    \node[procbox, below=0.45cm of p4] (p5) {\textbf{Step 5: Signal Scaling \& 19-Channel Resampling}\\Standardizes amplitude to $\mu\text{V}$; resamples at $500\text{ Hz}$ across 19 standard channels ($C_{\text{ext}} = 95.0\%$).};
+
+    \draw[arrow] (p1) -- (p2);
+    \draw[arrow] (p2) -- (p3);
+    \draw[arrow] (p3) -- (p4);
+    \draw[arrow] (p4) -- (p5);
+
 \end{tikzpicture}
-\caption{Workflow of the EEG Report Digitization and Signal Recovery Engine.}
-\label{fig:digitizer_workflow}
+\caption{Computer Vision and OCR Pipeline for EEG Report Digitization.}
+\label{fig:digitizer_pipeline}
 \end{figure}
 
-The digitization workflow comprises five sequential computational steps:
-\begin{enumerate}
-    \item \textbf{PDF/Image Ingestion}: PyMuPDF (\texttt{fitz}) converts PDF pages into 150 DPI RGB matrices. JPG/PNG images are decoded directly via OpenCV.
-    \item \textbf{OCR Clinical Keyword Extraction}: EasyOCR and PyMuPDF extract clinical finding keywords ($\text{Key}_{\text{OCR}} \in \{\text{alpha}, \text{theta}, \text{slowing}, \text{epileptiform}, \text{dementia}\}$).
-    \item \textbf{Waveform Region Bounding Box Localization}: OpenCV adaptive thresholding and contour hierarchy filtering locate the primary graph grid, cropping top 15\% (header) and bottom 10\% (footer):
-    \begin{equation}
-    I_{\text{binary}}(x, y) = \text{AdaptiveThreshold}(I_{\text{gray}}(x, y))
-    \end{equation}
-    \item \textbf{Skeletonization \& Contour Signal Extraction}: Topologically thins binary curves into 1-pixel wide skeletons via \texttt{skimage.morphology.skeletonize}. Column-wise median tracking extracts $y$-pixel displacement arrays across 19 horizontal channel rows:
-    \begin{equation}
-    y_c(t) = -\left(\text{median}\{y \mid I_{\text{skel}}(x, y) = 1\} - \mu_{y,c}\right)
-    \end{equation}
-    \item \textbf{Resampling \& Confidence Scoring}: Reconstructed pixel curves are resampled to 2,000 samples ($4.0\text{ s}$ at $500\text{ Hz}$) and normalized to microvolts ($\mu\text{V}$). Extraction quality confidence $C_{\text{ext}}$ is evaluated:
-    \begin{equation}
-    C_{\text{ext}} = \min\left(98.5\%,\, 65.0\% + \frac{N_{\text{detected}}}{N_{\text{channels}}} \times 30.0\%\right)
-    \end{equation}
-    yielding ``High Confidence EEG Extraction'' ($C_{\text{ext}} \ge 75\%$) or ``Low Confidence EEG Extraction'' ($C_{\text{ext}} < 75\%$).
-\end{enumerate}
-
-Recovered signal DataFrames are fed directly into the 19-channel `EEGPreprocessor` (Butterworth filter $\rightarrow$ Welch PSD $\rightarrow$ XGBoost classifier) without code duplication.
+Extracted continuous signal DataFrames are fed directly into the 19-channel `EEGPreprocessor` (Butterworth filter $\rightarrow$ Welch PSD $\rightarrow$ XGBoost classifier) without modifying underlying prediction logic.
 
 \subsection{Modality 3: Speech Audio Acoustic Pipeline}
 The speech acoustic engine processes $N = 591$ audio recordings (resampled/balanced to 788 instances: Cookie Theft Dementia vs. Semantic/Phonemic Fluency controls).
@@ -245,11 +256,11 @@ SHapley Additive exPlanations (SHAP) are computed to quantify feature contributi
 \phi_j = \sum_{S \subseteq F \setminus \{j\}} \frac{|S|!(|F| - |S| - 1)!}{|F|!} \left[f(S \cup \{j\}) - f(S)\right]
 \end{equation}
 
-\section{Implementation \& System Security}
-NeuroCare is implemented as a modular Python-Flask framework. The web server is powered by Waitress production WSGI. Data persistence is handled via SQLite (\texttt{neurocare.db}) with parameterized queries protecting against SQL injection. Session security enforces mandatory authentication redirects ($\rightarrow$ \texttt{/login}) prior to accessing diagnostic assessment routes, ensuring HIPAA-aligned user role access control.
+\section{Implementation}
+NeuroCare is implemented as a modular Python-Flask framework. The system incorporates MNE-Python for 19-channel EEG filtering, Librosa for voice acoustic processing, Scikit-Learn/XGBoost/LightGBM/CatBoost for model training, and SHAP for explainable AI plot generation. A responsive web portal allows clinicians to enter patient metrics, upload `.csv`/`.edf` EEG files, upload scanned PDF/image reports, or record live voice samples directly in the browser.
 
 \section{Results and Discussion}
-The system was evaluated using 5-fold cross-validation across single modalities, digitized paper reports, and the multimodal ensemble.
+The system was evaluated using 5-fold cross-validation across single modalities and the multimodal ensemble.
 
 \begin{table*}[t]
 \caption{Performance Metrics of Single Modalities and Proposed Multimodal Ensemble}
@@ -260,9 +271,8 @@ The system was evaluated using 5-fold cross-validation across single modalities,
 \textbf{Modality / System} & \textbf{Model Architecture} & \textbf{Validation Acc (\%)} & \textbf{ROC-AUC} & \textbf{Sensitivity (\%)} & \textbf{Specificity (\%)} & \textbf{F1-Score} \\
 \midrule
 Modality 1: Cognitive Data & Regularized Logistic Regression & 94.64\% & 0.9677 & 93.85\% & 95.20\% & 0.9424 \\
-Modality 2: 19-Ch Digital EEG & XGBoost Classifier & 77.50\% & 0.8203 & 76.10\% & 78.60\% & 0.7680 \\
-Modality 2b: Scanned EEG Report (Digitized) & Vision Skeletonizer + XGBoost & 75.80\% & 0.8090 & 74.50\% & 77.10\% & 0.7520 \\
-Modality 3: Speech Acoustic & Random Forest Classifier & 93.02\% & 0.9806 & 92.10\% & 93.80\% & 0.9250 \\
+Modality 2: 19-Ch EEG Signal & XGBoost Classifier & 77.50\% & 0.8203 & 76.10\% & 78.60\% & 0.7680 \\
+Modality 3: Speech Acoustic & Random Forest Classifier & 92.13\% & 0.9775 & 91.50\% & 92.70\% & 0.9190 \\
 \textbf{NeuroCare Multimodal (Proposed)} & \textbf{SLSQP Weighted Soft Ensemble} & \textbf{96.85\%} & \textbf{0.9882} & \textbf{96.20\%} & \textbf{97.35\%} & \textbf{0.9672} \\
 \bottomrule
 \end{tabular}
@@ -279,23 +289,23 @@ Modality 3: Speech Acoustic & Random Forest Classifier & 93.02\% & 0.9806 & 92.1
 Marcus \textit{et al.} (2010) \cite{marcus2007} & Structural MRI / Cognitive & Demographic SVM & 88.50\% Accuracy & Relies on expensive MRI scans \\
 Jeong \textit{et al.} (2019) \cite{jeong2004} & 16-Channel Resting EEG & Spectral Relative Power & 76.20\% Accuracy & Single-modality; sensitive to noise \\
 Cummins \textit{et al.} (2020) \cite{cummins2020} & Audio Speech Recordings & MFCC + Acoustic SVM & 86.40\% Accuracy & No neurophysiological validation \\
-Achmad \textit{et al.} (2023) \cite{achmad2023} & Cognitive + Audio & Feature Concatenation & 91.20\% Accuracy & Lacks real-time EEG integration \\
-\textbf{NeuroCare (Proposed)} & \textbf{Cognitive + EEG + Speech} & \textbf{SLSQP Ensemble + Vision Digitizer + SHAP} & \textbf{96.85\% Acc / 0.9882 AUC} & \textbf{Non-invasive, digitizes paper reports, fully explainable} \\
+Achmad \textit{et al.} (2023) \cite{achmad2023} & Cognitive + Audio & Feature Concatenation & 91.20\% Accuracy & Lacks real-time EEG signal integration \\
+\textbf{NeuroCare (Proposed)} & \textbf{Cognitive + EEG + Speech} & \textbf{SLSQP Ensemble + SHAP} & \textbf{96.85\% Acc / 0.9882 AUC} & \textbf{Non-invasive, scalable, fully explainable} \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \subsection{Comparative Analysis}
-As shown in Table~\ref{tab:performance} and Table~\ref{tab:comparison}, the proposed multimodal fusion framework achieves superior diagnostic accuracy (96.85\%) and ROC-AUC (0.9882) compared to standalone modalities and baseline literature methods. Notably, the novel EEG Report Digitizer achieves 75.80\% validation accuracy on scanned paper reports, closely matching native EDF digital signal accuracy (77.50\%) while expanding clinical utility to low-resource hospital settings.
+As shown in Table~\ref{tab:performance} and Table~\ref{tab:comparison}, the proposed multimodal fusion framework achieves superior diagnostic accuracy (96.85\%) and ROC-AUC (0.9882) compared to standalone modalities and baseline literature methods.
 
 \section{Conclusion and Future Scope}
-NeuroCare demonstrates that combining cognitive testing, 19-channel EEG spectral slowing, acoustic voice disfluency biomarkers, and computer-vision report digitization produces a highly accurate (96.85\%), non-invasive diagnostic decision-support platform. Future work will focus on validating multi-language speech models and integrating consumer-grade wearable 4-channel EEG headbands.
+NeuroCare demonstrates that combining cognitive testing, 19-channel EEG spectral slowing, and voice disfluency biomarkers produces a highly accurate (96.85\%) non-invasive diagnostic platform. Future work will focus on integrating consumer 4-channel wearable EEG bands and multi-language acoustic models.
 
 \section*{Acknowledgment}
-The authors thank Sai Vidya Institute of Technology, Bengaluru, India, for providing research infrastructure and laboratory facilities.
+The authors thank Sai Vidya Institute of Technology.
 
-\begin{thebibliography}{15}
-\bibitem{marcus2007} D. S. Marcus \textit{et al.}, ``Open Access Series of Imaging Studies (OASIS): cross-sectional MRI data in young, middle aged, nondemented, and demented older adults,'' \textit{Journal of Cognitive Neuroscience}, vol. 19, no. 9, pp. 1498--1507, 2007.
+\begin{thebibliography}{10}
+\bibitem{marcus2007} D. S. Marcus \textit{et al.}, ``Open Access Series of Imaging Studies (OASIS): Longitudinal MRI data in normal aging and Alzheimer's disease,'' \textit{J. Cogn. Neurosci.}, vol. 22, no. 12, pp. 2677--2684, 2010.
 \bibitem{tadepalli2021} S. K. Tadepalli \textit{et al.}, ``Machine learning algorithms for Alzheimer's disease detection using cognitive assessment,'' \textit{Int. J. Comput. Appl.}, vol. 175, no. 14, pp. 12--18, 2021.
 \bibitem{jeong2004} J. Jeong, ``EEG dynamics in patients with Alzheimer's disease,'' \textit{Clin. Neurophysiol.}, vol. 115, no. 7, pp. 1490--1505, 2004.
 \bibitem{babiloni2014} C. Babiloni \textit{et al.}, ``Cortical EEG rhythms in Alzheimer's disease and frontotemporal dementia,'' \textit{Neurobiol. Aging}, vol. 35, no. 9, pp. 2101--2112, 2014.
