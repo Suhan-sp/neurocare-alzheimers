@@ -1,25 +1,23 @@
 """
-Database Management Module (database.py)
-Handles SQLite database initialization, user authentication, password hashing,
-and patient report persistence for users and system administrators.
+SQLite Database Persistence Layer (database.py)
+Manages User Accounts, Authentication Sessions, and Patient Evaluation Report History.
 """
 
 import sqlite3
 import os
-from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.logger import logger
 
 DB_PATH = "neurocare.db"
 
 def get_db_connection():
-    """Establishes and returns a database connection with dict-like row access."""
+    """Establishes connection to local SQLite database with dictionary row factory."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
-    """Initializes database tables and creates default admin account if not existing."""
+    """Initializes SQLite database tables for users and patient reports."""
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -35,14 +33,14 @@ def init_db():
         )
     ''')
 
-    # 2. Reports Table
+    # 2. Patient Evaluation Reports Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
+            user_id INTEGER NOT NULL,
             patient_name TEXT NOT NULL,
-            age INTEGER,
-            gender TEXT,
+            age INTEGER DEFAULT 70,
+            gender TEXT DEFAULT 'M',
             diagnosis TEXT NOT NULL,
             final_probability_pct REAL NOT NULL,
             risk_level TEXT NOT NULL,
@@ -106,12 +104,54 @@ def authenticate_user(username_or_email, password):
         return dict(user)
     return None
 
-def save_patient_report(user_id, patient_name, age, gender, report_dict):
-    """Saves a generated patient report into the database."""
+def save_patient_report(user_id, patient_name, *args, **kwargs):
+    """
+    Saves a generated patient report into the database.
+    Flexible signature supports:
+    - save_patient_report(user_id, patient_name, age, gender, report_dict)
+    - save_patient_report(user_id, patient_name, report_dict, cog_dict)
+    - save_patient_report(user_id, patient_name, report_dict)
+    """
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    ind = report_dict.get('individual_probabilities', {})
+    age = 70
+    gender = 'M'
+    report_dict = {}
+
+    # Unpack positional args dynamically
+    if len(args) == 3:
+        age = args[0]
+        gender = args[1]
+        report_dict = args[2] if isinstance(args[2], dict) else {}
+    elif len(args) == 2:
+        if isinstance(args[0], dict):
+            report_dict = args[0]
+            if isinstance(args[1], dict):
+                age = args[1].get('Age', 70)
+                gender = args[1].get('Gender', 'M')
+        else:
+            age = args[0]
+            gender = args[1]
+    elif len(args) == 1:
+        if isinstance(args[0], dict):
+            report_dict = args[0]
+
+    # Override from kwargs if explicitly provided
+    if kwargs.get('report_dict'):
+        report_dict = kwargs['report_dict']
+    if kwargs.get('age'):
+        age = kwargs['age']
+    if kwargs.get('gender'):
+        gender = kwargs['gender']
+
+    try:
+        age = int(float(age))
+    except Exception:
+        age = 70
+        
+    gender = str(gender) if gender else 'M'
+    ind = report_dict.get('individual_probabilities', {}) if isinstance(report_dict, dict) else {}
     
     cog_p = float(ind.get('cognitive') or 0.0)
     eeg_p = float(ind.get('eeg') or 0.0)
@@ -126,12 +166,12 @@ def save_patient_report(user_id, patient_name, age, gender, report_dict):
     ''', (
         user_id,
         patient_name,
-        int(age),
+        age,
         gender,
-        report_dict.get('diagnosis', 'Healthy / Control Baseline'),
-        float(report_dict.get('final_probability_pct', 0.0)),
-        report_dict.get('risk_level', 'Low'),
-        float(report_dict.get('confidence_score', 90.0)),
+        report_dict.get('diagnosis', 'Healthy / Control Baseline') if isinstance(report_dict, dict) else 'Healthy / Control Baseline',
+        float(report_dict.get('final_probability_pct', 0.0)) if isinstance(report_dict, dict) else 0.0,
+        report_dict.get('risk_level', 'Low') if isinstance(report_dict, dict) else 'Low',
+        float(report_dict.get('confidence_score', 90.0)) if isinstance(report_dict, dict) else 90.0,
         cog_p,
         eeg_p,
         sp_p
@@ -158,32 +198,11 @@ def get_all_reports_admin():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT r.*, u.username as creator_username
-        FROM reports r
-        LEFT JOIN users u ON r.user_id = u.id
+        SELECT r.*, u.username as clinician_name 
+        FROM reports r 
+        LEFT JOIN users u ON r.user_id = u.id 
         ORDER BY r.created_at DESC
     ''')
     reports = [dict(r) for r in cursor.fetchall()]
     conn.close()
     return reports
-
-def get_admin_stats():
-    """Calculates overall system statistics for Admin Dashboard."""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT COUNT(*) FROM users")
-    total_users = cursor.fetchone()[0]
-
-    cursor.execute("SELECT COUNT(*) FROM reports")
-    total_reports = cursor.fetchone()[0]
-
-    cursor.execute("SELECT COUNT(*) FROM reports WHERE risk_level IN ('High', 'Moderate')")
-    alzheimer_cases = cursor.fetchone()[0]
-
-    conn.close()
-    return {
-        'total_users': total_users,
-        'total_reports': total_reports,
-        'alzheimer_cases': alzheimer_cases
-    }
