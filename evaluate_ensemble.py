@@ -45,7 +45,6 @@ def evaluate_system():
 
     print("="*95 + "\n")
     print("  Optimal SLSQP Fusion Weights [Cognitive, EEG, Speech]: [0.34, 0.33, 0.33]")
-    print("  Multimodal Ensemble Status: FULLY VERIFIED & MATCHING PAPER TABLE I\n")
 
 if __name__ == '__main__':
     evaluate_system()
