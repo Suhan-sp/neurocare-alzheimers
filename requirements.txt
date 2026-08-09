@@ -19,3 +19,5 @@ opencv-python>=4.8.0
 PyMuPDF>=1.23.0
 scikit-image>=0.22.0
 easyocr>=1.7.0
+imageio-ffmpeg>=0.6.0
+pydub>=0.25.1
