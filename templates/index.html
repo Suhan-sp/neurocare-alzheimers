@@ -210,6 +210,12 @@
             </p>
         </div>
 
+        {% if error %}
+            <div class="glass-panel" style="padding: 1rem; margin-bottom: 1.5rem; border-left: 4px solid var(--accent-rose); color: #f87171;">
+                <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+            </div>
+        {% endif %}
+
         <!-- Assessment Input Form -->
         <form action="/predict" method="POST" enctype="multipart/form-data" class="assessment-form" onsubmit="showLoadingOverlay()">
             
@@ -221,35 +227,62 @@
                 </div>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label" for="patient_name">Patient Name / Identifier</label>
-                        <input type="text" id="patient_name" name="patient_name" class="form-input" placeholder="e.g. Patient #1042" required>
+                        <label class="form-label" for="PatientName">Patient Name / Identifier</label>
+                        <input type="text" id="PatientName" name="PatientName" class="form-input" placeholder="e.g. Patient #1042" required>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 1: Cognitive Assessment (Required) -->
+            <!-- Step 1: Cognitive & Demographic Assessment (Required) -->
             <div class="glass-panel" style="padding: 1.75rem;">
                 <div class="section-title">
                     <i class="fa-solid fa-brain title-icon" style="color: var(--accent-indigo);"></i>
-                    <h2>1. Neuropsychological Cognitive Assessment (Required Input)</h2>
+                    <h2>1. Neuropsychological Cognitive & Clinical Features (Required Input)</h2>
                 </div>
 
-                <div class="form-grid">
+                <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+                    <!-- Patient Age -->
                     <div class="form-group">
-                        <label class="form-label" for="MMSE">Mini-Mental State Examination (MMSE)</label>
-                        <input type="number" id="MMSE" name="MMSE" class="form-input" min="0" max="30" step="1" value="27" required>
-                        <span class="form-hint">Standard MMSE Score (0 to 30)</span>
+                        <label class="form-label" for="Age">Patient Age (Years)</label>
+                        <input type="number" id="Age" name="Age" class="form-input" min="40" max="100" value="70" required>
+                        <span class="form-hint">Clinical Cohort Age (40 to 100)</span>
                     </div>
 
+                    <!-- Gender -->
                     <div class="form-group">
-                        <label class="form-label" for="CDR">Daily Memory Impairment</label>
+                        <label class="form-label" for="Gender">Gender</label>
+                        <select id="Gender" name="Gender" class="form-select" required>
+                            <option value="M" selected>Male (M)</option>
+                            <option value="F">Female (F)</option>
+                        </select>
+                        <span class="form-hint">Biological Sex</span>
+                    </div>
+
+                    <!-- Education Level -->
+                    <div class="form-group">
+                        <label class="form-label" for="EDUC">Education (Years)</label>
+                        <input type="number" id="EDUC" name="EDUC" class="form-input" min="1" max="25" value="14" required>
+                        <span class="form-hint">Years of Formal Education</span>
+                    </div>
+
+                    <!-- MMSE Score -->
+                    <div class="form-group">
+                        <label class="form-label" for="MMSE">MMSE Score (0 - 30)</label>
+                        <input type="number" id="MMSE" name="MMSE" class="form-input" min="0" max="30" step="1" value="27" required>
+                        <span class="form-hint">Standard MMSE Score</span>
+                    </div>
+
+                    <!-- CDR Memory Rating -->
+                    <div class="form-group">
+                        <label class="form-label" for="CDR">Daily Memory Impairment (CDR)</label>
                         <select id="CDR" name="CDR" class="form-select" required>
                             <option value="" disabled selected>Select Memory Impairment Rating</option>
-                            <option value="0.0">Normal / No Memory Loss</option>
-                            <option value="0.5">Slight / Mild Forgetfulness</option>
-                            <option value="1.0">Moderate Memory Impairment</option>
-                            <option value="2.0">Severe Memory Loss</option>
+                            <option value="0.0">Normal / No Memory Loss (CDR 0.0)</option>
+                            <option value="0.5">Slight / Mild Forgetfulness (CDR 0.5)</option>
+                            <option value="1.0">Moderate Memory Impairment (CDR 1.0)</option>
+                            <option value="2.0">Severe Memory Loss (CDR 2.0)</option>
                         </select>
+                        <span class="form-hint">Clinical Dementia Rating</span>
                     </div>
                 </div>
             </div>
