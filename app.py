@@ -145,9 +145,9 @@ def predict_route():
         # Execute End-to-End Prediction
         res = predictor.predict_all(cog_dict=cog_dict, eeg_file=eeg_file_path, speech_audio=speech_audio)
 
-        # Save Report to SQLite DB
+        # Save Report to SQLite DB (user_id, patient_name, age, gender, report_dict)
         user_id = session['user'].get('id', 1)
-        report_id = save_patient_report(user_id, patient_name, res, cog_dict)
+        report_id = save_patient_report(user_id, patient_name, int(age), gender, res)
 
         return render_template('result.html', res=res, cog_input=cog_dict, patient_name=patient_name, report_id=report_id)
 
