@@ -3,12 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroCare - Patient Diagnostic Assessment</title>
+    <title>NeuroCare AI - Multimodal Early Prediction of Alzheimer's Disease</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Full-Screen Glassmorphic Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(7, 11, 22, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loader-neural-ring {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.75rem;
+        }
+
+        .loader-ring-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: var(--accent-teal, #14b8a6);
+            border-bottom-color: var(--accent-indigo, #6366f1);
+            animation: spinRing 1.5s linear infinite;
+        }
+
+        .loader-ring-pulse-outer {
+            position: absolute;
+            width: 130%;
+            height: 130%;
+            border-radius: 50%;
+            border: 2px dashed rgba(20, 184, 166, 0.4);
+            animation: spinRingReverse 3s linear infinite;
+        }
+
+        .loader-brain-icon {
+            font-size: 2.5rem;
+            color: var(--accent-teal, #14b8a6);
+            filter: drop-shadow(0 0 12px rgba(20, 184, 166, 0.8));
+            animation: pulseBrain 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes spinRing {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spinRingReverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes pulseBrain {
+            0% { transform: scale(0.92); opacity: 0.8; }
+            100% { transform: scale(1.08); opacity: 1; }
+        }
+
+        .loader-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2dd4bf, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .loader-status-text {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+            min-height: 1.5rem;
+            font-weight: 500;
+        }
+
+        .loader-progress-bar-container {
+            width: 100%;
+            max-width: 450px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .loader-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #14b8a6, #6366f1, #a855f7);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
+        }
+
+        .loader-steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            text-align: left;
+            max-width: 420px;
+            width: 100%;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .loader-step-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: color 0.3s ease;
+        }
+
+        .loader-step-item.active {
+            color: #2dd4bf;
+            font-weight: 600;
+        }
+
+        .loader-step-item.completed {
+            color: #34d399;
+        }
+    </style>
 </head>
 <body>
+    <!-- Full-Screen Loading Screen Overlay -->
+    <div id="loadingOverlay">
+        <div class="loader-neural-ring">
+            <div class="loader-ring-pulse"></div>
+            <div class="loader-ring-pulse-outer"></div>
+            <i class="fa-solid fa-brain loader-brain-icon"></i>
+        </div>
+
+        <div class="loader-title">Executing Multimodal Diagnostic Pipeline</div>
+        <div class="loader-status-text" id="loaderStatusText">Initializing NeuroCare Inference Engine...</div>
+
+        <div class="loader-progress-bar-container">
+            <div class="loader-progress-fill" id="loaderProgressFill"></div>
+        </div>
+
+        <ul class="loader-steps-list">
+            <li class="loader-step-item" id="step1"><i class="fa-solid fa-circle-notch fa-spin"></i> 1. Validating Patient Metrics & Cognitive Profiling...</li>
+            <li class="loader-step-item" id="step2"><i class="fa-regular fa-circle"></i> 2. Ingesting & Filtering 19-Channel EEG Signals...</li>
+            <li class="loader-step-item" id="step3"><i class="fa-regular fa-circle"></i> 3. Running Vision EEG Digitizer & OCR Skeletonization...</li>
+            <li class="loader-step-item" id="step4"><i class="fa-regular fa-circle"></i> 4. Extracting Speech Acoustic Biomarkers & MFCC Features...</li>
+            <li class="loader-step-item" id="step5"><i class="fa-regular fa-circle"></i> 5. Fusing Probabilities via SLSQP Soft Voting Ensemble...</li>
+            <li class="loader-step-item" id="step6"><i class="fa-regular fa-circle"></i> 6. Generating SHAP Interpretability & Diagnostic Report...</li>
+        </ul>
+    </div>
+
     <!-- Navigation Header -->
     <header class="main-header">
         <div class="header-container">
@@ -28,83 +195,57 @@
                         <a href="/logout" class="btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; text-decoration: none;">Sign Out</a>
                     </div>
                 {% else %}
-                    <a href="/login" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a>
-                    <a href="/register" class="btn-primary" style="padding: 0.45rem 1rem; font-size: 0.85rem; text-decoration: none; border-radius: 8px;">Register</a>
+                    <a href="/login" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
                 {% endif %}
             </nav>
         </div>
     </header>
 
     <div class="app-container">
-        <!-- System Hero Banner -->
+        <!-- Hero Title Banner -->
         <div class="hero-section">
-            <h1 class="hero-title">Multimodal Alzheimer's Diagnostic Platform</h1>
-            <p class="hero-subtitle">Enter clinical metrics below. EEG brain scans and voice audio recordings are optional inputs.</p>
+            <h1 class="hero-title">Multimodal Early Prediction of Alzheimer's Disease</h1>
+            <p class="hero-subtitle">
+                Non-invasive early clinical decision-support system synthesizing Cognitive Profiling, 19-Channel EEG Signal Processing, and Voice Acoustic Biomarkers.
+            </p>
         </div>
 
-        {% if error %}
-            <div class="error-banner" style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fecdd3; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-rose); font-size: 1.25rem;"></i>
-                <div><strong>Notice:</strong> {{ error }}</div>
+        <!-- Assessment Input Form -->
+        <form action="/predict" method="POST" enctype="multipart/form-data" class="assessment-form" onsubmit="showLoadingOverlay()">
+            
+            <!-- Patient Demographics Section -->
+            <div class="glass-panel" style="padding: 1.75rem; margin-bottom: 1.5rem;">
+                <div class="section-title">
+                    <i class="fa-solid fa-user-doctor title-icon" style="color: var(--accent-teal);"></i>
+                    <h2>Patient Demographics</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="patient_name">Patient Name / Identifier</label>
+                        <input type="text" id="patient_name" name="patient_name" class="form-input" placeholder="e.g. Patient #1042" required>
+                    </div>
+                </div>
             </div>
-        {% endif %}
 
-        <!-- Diagnostic Form -->
-        <form action="/predict" method="POST" enctype="multipart/form-data" class="assessment-form">
-            <!-- Step 1: Cognitive Data -->
+            <!-- Step 1: Cognitive Assessment (Required) -->
             <div class="glass-panel" style="padding: 1.75rem;">
                 <div class="section-title">
-                    <i class="fa-solid fa-clipboard-user title-icon"></i>
-                    <h2>1. Patient Demographics & Cognitive Metrics (Required)</h2>
+                    <i class="fa-solid fa-brain title-icon" style="color: var(--accent-indigo);"></i>
+                    <h2>1. Neuropsychological Cognitive Assessment (Required Input)</h2>
                 </div>
 
-                <div class="form-group-grid">
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label" for="PatientName">Patient Full Name / ID</label>
-                        <input type="text" id="PatientName" name="PatientName" class="form-input"  value="" required>
-                    </div>
-
+                <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label" for="Age">Age (Years)</label>
-                        <input type="number" id="Age" name="Age" class="form-input"  min="40" max="105" value="" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="Gender">Gender</label>
-                        <select id="Gender" name="Gender" class="form-select" required>
-                            <option value="" disabled selected>Select Gender</option>
-                            <option value="F">Female</option>
-                            <option value="M">Male</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="EDUC">Education (Years)</label>
-                        <input type="number" id="EDUC" name="EDUC" class="form-input" min="0" max="25" value="" required>
-                        <span class="form-hint">Total years of formal education</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="FamilyHistory">Family History of Dementia</label>
-                        <select id="FamilyHistory" name="FamilyHistory" class="form-select">
-                            <option value="" disabled selected>Select Family History</option>
-                            <option value="no">No Known History</option>
-                            <option value="yes">Yes (Parent / Sibling)</option>
-                            <option value="unsure">Unsure</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="MMSE">Cognitive Test Score (0 - 30)</label>
-                        <input type="number" id="MMSE" name="MMSE" class="form-input"  min="0" max="30" value="" required>
+                        <label class="form-label" for="MMSE">Mini-Mental State Examination (MMSE)</label>
+                        <input type="number" id="MMSE" name="MMSE" class="form-input" min="0" max="30" step="1" value="27" required>
                         <span class="form-hint">Standard MMSE Score (0 to 30)</span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="CDR">Daily Memory Impairment</label>
                         <select id="CDR" name="CDR" class="form-select" required>
-                            <option value="" disabled selected>Select Memory Impairment Rating</option>
-                            <option value="0.0">Normal / No Memory Loss</option>
+                            <option value="" disabled>Select Memory Impairment Rating</option>
+                            <option value="0.0" selected>Normal / No Memory Loss</option>
                             <option value="0.5">Slight / Mild Forgetfulness</option>
                             <option value="1.0">Moderate Memory Impairment</option>
                             <option value="2.0">Severe Memory Loss</option>
@@ -136,7 +277,7 @@
             <div class="glass-panel" style="padding: 1.75rem;">
                 <div class="section-title">
                     <i class="fa-solid fa-microphone-lines title-icon" style="color: var(--accent-emerald);"></i>
-                    <h2>3. Speech & Voice Audio Recording (Optional Input)</h2>
+                    <h2>3. Speech & Voice Audio Recording</h2>
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
                     Record 5 seconds of live voice audio or upload a WAV recording. If omitted, the assessment runs without speech audio.
@@ -165,7 +306,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="btn-submit">
+            <button type="submit" class="btn-submit" id="btnSubmitForm">
                 <i class="fa-solid fa-microchip"></i> Generate Report
             </button>
         </form>
@@ -177,6 +318,52 @@
             if (input.files && input.files[0]) {
                 fileNameDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Selected File: ' + input.files[0].name;
             }
+        }
+
+        function showLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            const submitBtn = document.getElementById('btnSubmitForm');
+            
+            overlay.style.display = 'flex';
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Assessment...';
+
+            const statusText = document.getElementById('loaderStatusText');
+            const progressFill = document.getElementById('loaderProgressFill');
+
+            const steps = [
+                { id: 'step1', pct: 15, text: '1. Validating Patient Metrics & Cognitive Profiling...' },
+                { id: 'step2', pct: 35, text: '2. Ingesting & Filtering 19-Channel EEG Signals...' },
+                { id: 'step3', pct: 55, text: '3. Running Vision EEG Digitizer & OCR Skeletonization...' },
+                { id: 'step4', pct: 75, text: '4. Extracting Speech Acoustic Biomarkers & MFCC Features...' },
+                { id: 'step5', pct: 88, text: '5. Fusing Probabilities via SLSQP Soft Voting Ensemble...' },
+                { id: 'step6', pct: 96, text: '6. Generating SHAP Interpretability & Diagnostic Report...' }
+            ];
+
+            let index = 0;
+            function updateStep() {
+                if (index < steps.length) {
+                    const step = steps[index];
+                    statusText.innerHTML = step.text;
+                    progressFill.style.width = step.pct + '%';
+
+                    if (index > 0) {
+                        const prevItem = document.getElementById(steps[index - 1].id);
+                        prevItem.className = 'loader-step-item completed';
+                        prevItem.querySelector('i').className = 'fa-solid fa-circle-check';
+                    }
+
+                    const currItem = document.getElementById(step.id);
+                    currItem.className = 'loader-step-item active';
+                    currItem.querySelector('i').className = 'fa-solid fa-circle-notch fa-spin';
+
+                    index++;
+                    setTimeout(updateStep, 1400);
+                }
+            }
+
+            updateStep();
         }
 
         let mediaRecorder;
