@@ -9,7 +9,7 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from werkzeug.utils import secure_filename
 from predict import MultimodalPredictor
-from db import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin
+from database.db import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin
 from utils.logger import logger
 
 app = Flask(__name__)
