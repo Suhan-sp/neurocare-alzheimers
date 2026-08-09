@@ -1,81 +1,62 @@
 """
-Flask Web Application Server (app.py)
-Provides web interface, authentication, assessment submission, and report rendering.
-Strictly requires user inputs with zero hardcoded/dummy fallbacks.
-Enforces authentication: Users must log in before accessing the assessment portal.
+NeuroCare AI - Master Flask Web Application (app.py)
+Multimodal Early Prediction Platform for Alzheimer's Disease
+Synthesizes Cognitive Profiling, 19-Channel EEG Signal Processing / Report Digitization, and Speech Acoustics.
 """
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 import os
-import secrets
+import sqlite3
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from werkzeug.utils import secure_filename
 from predict import MultimodalPredictor
-from services.eeg_digitizer import EEGReportDigitizer
-from database import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin, get_admin_stats
+from db import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin
 from utils.logger import logger
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(24)
+app.secret_key = 'neurocare_secret_key_prod_2026'
 
 # Configure upload directory
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload limit
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB Max upload limit
 
-# Initialize SQLite database
+# Initialize SQLite Database & Multimodal Predictor Instance
 init_db()
-
-# Initialize Multimodal Predictor Engine & EEG Digitizer
 predictor = MultimodalPredictor()
-eeg_digitizer_service = EEGReportDigitizer()
-
-def safe_float(val, default_val=0.0):
-    try:
-        return float(val) if val is not None and str(val).strip() != '' else default_val
-    except ValueError:
-        return default_val
 
 @app.route('/')
 def index():
-    """Renders main patient assessment form. Redirects to login if user is not authenticated."""
+    """Renders main assessment dashboard. Requires mandatory login redirect."""
     if not session.get('user'):
         return redirect(url_for('login'))
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handles user/admin login."""
+    """Handles clinician / patient session authentication."""
     if request.method == 'POST':
-        username_or_email = request.form.get('username', '').strip()
+        username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
-        
-        user = authenticate_user(username_or_email, password)
+
+        user = authenticate_user(username, password)
         if user:
-            session['user'] = {
-                'id': user['id'],
-                'username': user['username'],
-                'email': user['email'],
-                'role': user['role'],
-                'name': user['username'].capitalize()
-            }
-            logger.info(f"User '{user['username']}' logged in successfully.")
+            session['user'] = user
+            logger.info(f"User '{username}' logged in successfully.")
             return redirect(url_for('index'))
         else:
-            return render_template('login.html', error="Invalid username/email or password.")
+            return render_template('login.html', error="Invalid username or password.")
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Handles new user registration."""
+    """Handles new account creation."""
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
-        
-        if not username or not email or not password:
-            return render_template('register.html', error="Please complete all required registration fields.")
-            
-        success, msg_or_id = register_user(username, email, password)
+
+        success, msg_or_id = register_user(username, email, password, role='user')
         if success:
             session['user'] = {
                 'id': msg_or_id,
@@ -113,6 +94,7 @@ def predict_route():
         educ_str = request.form.get('EDUC', '').strip()
         mmse_str = request.form.get('MMSE', '').strip()
         cdr_str = request.form.get('CDR', '').strip()
+        fam_history_str = request.form.get('FamilyHistory', '').strip()
 
         if not age_str or not gender_str or not educ_str or not mmse_str or not cdr_str:
             return render_template('index.html', error="Please fill in all required patient fields: Age, Gender, Education, MMSE score, and Daily Memory rating.")
@@ -122,6 +104,7 @@ def predict_route():
         educ_level = float(educ_str)
         mmse = float(mmse_str)
         cdr = float(cdr_str)
+        fam_history = 1.0 if fam_history_str.lower() in ['yes', 'y', '1', '1.0'] else 0.0
 
         # Volumetric ratio derivation based on user's exact CDR rating
         nwbv = 0.78 if cdr == 0.0 else (0.72 if cdr == 0.5 else 0.68)
@@ -136,6 +119,7 @@ def predict_route():
             'SES': ses,
             'MMSE': mmse,
             'CDR': cdr,
+            'FamilyHistory': fam_history,
             'eTIV': etiv,
             'nWBV': nwbv,
             'ASF': asf
@@ -158,49 +142,41 @@ def predict_route():
             speech_audio = speech_file_path
             logger.info(f"Saved patient speech audio file to {speech_file_path}")
 
-        # 4. Execute Prediction Pipeline on User Inputs
-        results = predictor.predict_all(cog_dict, eeg_file=eeg_file_path, speech_audio=speech_audio)
-        results['patient_name'] = patient_name
+        # Execute End-to-End Prediction
+        res = predictor.predict_all(cog_dict=cog_dict, eeg_file=eeg_file_path, speech_audio=speech_audio)
 
-        # 5. Database Persistence (Tied to logged-in user account)
-        report_id = 1
-        try:
-            user_id = session.get('user', {}).get('id')
-            report_id = save_patient_report(user_id, patient_name, age, gender, results)
-            logger.info(f"Patient report #{report_id} saved for patient '{patient_name}'")
-        except Exception as db_err:
-            logger.warning(f"Database save non-blocking warning: {db_err}")
+        # Save Report to SQLite DB
+        user_id = session['user'].get('id', 1)
+        report_id = save_patient_report(user_id, patient_name, res, cog_dict)
 
-        return render_template('result.html', res=results, patient_name=patient_name, report_id=report_id, cog_input=cog_dict)
+        return render_template('result.html', res=res, cog_input=cog_dict, patient_name=patient_name, report_id=report_id)
 
     except Exception as e:
-        logger.error(f"Error during assessment execution: {e}")
-        return render_template('index.html', error=f"Assessment Execution Error: {str(e)}")
+        logger.error(f"Prediction route exception: {e}")
+        return render_template('index.html', error=f"An error occurred during evaluation: {e}")
 
 @app.route('/my-reports')
 def my_reports():
-    """Displays personal patient report history for logged-in users."""
+    """Displays historical assessment reports for logged-in user."""
     if not session.get('user'):
         return redirect(url_for('login'))
-    user_id = session['user']['id']
+    user_id = session['user'].get('id', 1)
     reports = get_user_reports(user_id)
-    return render_template('my_reports.html', reports=reports)
+    return render_template('reports.html', reports=reports)
 
 @app.route('/admin')
 def admin_dashboard():
-    """Admin Dashboard showing system reports and analytics."""
+    """Admin dashboard listing all patient reports across clinicians."""
     if not session.get('user') or session['user'].get('role') != 'admin':
-        return render_template('login.html', error="Admin access required.")
-    stats = get_admin_stats()
-    reports = get_all_reports_admin()
-    return render_template('admin_dashboard.html', stats=stats, reports=reports)
+        return redirect(url_for('index'))
+    all_reports = get_all_reports_admin()
+    return render_template('admin.html', reports=all_reports)
 
 if __name__ == '__main__':
     from waitress import serve
-    print("\n" + "="*65)
+    print("\n=================================================================")
     print("  [SUCCESS] SERVER IS LIVE AND READY FOR USER INPUTS!")
     print("  --> Open your web browser (Chrome/Edge/Firefox) and go to:")
     print("      http://127.0.0.1:5000   or   http://localhost:5000")
-    print("="*65 + "\n")
-    logger.info("Starting production WSGI Waitress server on http://0.0.0.0:5000")
-    serve(app, host="0.0.0.0", port=5000)
+    print("=================================================================\n")
+    serve(app, host='0.0.0.0', port=5000)

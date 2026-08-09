@@ -244,7 +244,7 @@
                     <!-- Patient Age -->
                     <div class="form-group">
                         <label class="form-label" for="Age">Patient Age (Years)</label>
-                        <input type="number" id="Age" name="Age" class="form-input" min="40" max="100" value="70" required>
+                        <input type="number" id="Age" name="Age" class="form-input" min="40" max="100" placeholder="Enter Age (e.g. 70)" required>
                         <span class="form-hint">Clinical Cohort Age (40 to 100)</span>
                     </div>
 
@@ -252,7 +252,8 @@
                     <div class="form-group">
                         <label class="form-label" for="Gender">Gender</label>
                         <select id="Gender" name="Gender" class="form-select" required>
-                            <option value="M" selected>Male (M)</option>
+                            <option value="" disabled selected>Select Gender</option>
+                            <option value="M">Male (M)</option>
                             <option value="F">Female (F)</option>
                         </select>
                         <span class="form-hint">Biological Sex</span>
@@ -261,14 +262,14 @@
                     <!-- Education Level -->
                     <div class="form-group">
                         <label class="form-label" for="EDUC">Education (Years)</label>
-                        <input type="number" id="EDUC" name="EDUC" class="form-input" min="1" max="25" value="14" required>
+                        <input type="number" id="EDUC" name="EDUC" class="form-input" min="1" max="25" placeholder="Enter Education Years (e.g. 14)" required>
                         <span class="form-hint">Years of Formal Education</span>
                     </div>
 
                     <!-- MMSE Score -->
                     <div class="form-group">
                         <label class="form-label" for="MMSE">MMSE Score (0 - 30)</label>
-                        <input type="number" id="MMSE" name="MMSE" class="form-input" min="0" max="30" step="1" value="27" required>
+                        <input type="number" id="MMSE" name="MMSE" class="form-input" min="0" max="30" step="1" placeholder="Enter MMSE Score (0 to 30)" required>
                         <span class="form-hint">Standard MMSE Score</span>
                     </div>
 
@@ -283,6 +284,17 @@
                             <option value="2.0">Severe Memory Loss (CDR 2.0)</option>
                         </select>
                         <span class="form-hint">Clinical Dementia Rating</span>
+                    </div>
+
+                    <!-- Family History -->
+                    <div class="form-group">
+                        <label class="form-label" for="FamilyHistory">Family History of Dementia</label>
+                        <select id="FamilyHistory" name="FamilyHistory" class="form-select" required>
+                            <option value="" disabled selected>Select Family History</option>
+                            <option value="Yes">Yes (Parent / Sibling Diagnosed)</option>
+                            <option value="No">No Known Family History</option>
+                        </select>
+                        <span class="form-hint">Family Genetics History</span>
                     </div>
                 </div>
             </div>
