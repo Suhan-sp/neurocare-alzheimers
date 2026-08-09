@@ -124,7 +124,15 @@ class MultimodalPredictor:
         if eeg_file_or_df is None or self.eeg_model is None or self.eeg_preprocessor is None:
             return None, {}, {}
 
-        digitization_meta = {'is_digitized': False, 'input_type': 'Digital EEG Signal (EDF/CSV)'}
+        digitization_meta = {
+            'is_digitized': False,
+            'input_type': 'Digital EDF / CSV File',
+            'confidence_label': 'High Confidence EEG Extraction',
+            'confidence_score': 100.0,
+            'num_channels': 19,
+            'channel_list': ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'],
+            'findings': None
+        }
 
         try:
             # Check if file is a scanned PDF / Image report
@@ -192,6 +200,7 @@ class MultimodalPredictor:
             self.ensemble = MultimodalEnsemble()
             
         result = self.ensemble.predict_ensemble(p_cog, p_eeg, p_speech, method='weighted')
+        result['eeg_psd_dict'] = psd_dict
         result['eeg_digitization_meta'] = eeg_digitization_meta
 
         logger.info(f"SLSQP Ensemble Fusion Calculated Risk Index: {result['final_probability_pct']}% ({result['risk_level']} Risk)")

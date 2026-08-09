@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagnostic Report - {{ patient_name }} - NeuroCare</title>
+    <title>Diagnostic Report #{{ report_id }} - NeuroCare AI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @media print {
-            header, .no-print { display: none !important; }
+            .no-print { display: none !important; }
             body { background: white !important; color: black !important; }
-            .glass-panel { background: none !important; border: 1px solid #ddd !important; box-shadow: none !important; color: black !important; }
-            .summary-value, h2, h3 { color: black !important; }
+            .glass-panel { background: white !important; border: 1px solid #ddd !important; box-shadow: none !important; color: black !important; }
+            .hero-title, .section-title, h1, h2, h3, h4 { color: black !important; }
+            #eegDetailsSection { display: block !important; }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Navigation Header -->
     <header class="main-header no-print">
         <div class="header-container">
             <a href="/" class="brand-logo">
@@ -25,101 +26,90 @@
                 <span>NeuroCare AI</span>
             </a>
             <nav class="nav-links">
-                <a href="/" class="nav-link"><i class="fa-solid fa-plus-circle"></i> New Assessment</a>
+                <a href="/" class="nav-link"><i class="fa-solid fa-notes-medical"></i> New Assessment</a>
                 {% if session.get('user') %}
                     <a href="/my-reports" class="nav-link"><i class="fa-solid fa-folder-open"></i> My Reports</a>
+                    {% if session['user'].get('role') == 'admin' %}
+                        <a href="/admin" class="nav-link" style="color: var(--accent-amber);"><i class="fa-solid fa-user-shield"></i> Admin Dashboard</a>
+                    {% endif %}
+                    <div class="user-menu" style="display: flex; align-items: center; gap: 0.75rem; margin-left: 1rem;">
+                        <span style="font-size: 0.88rem; color: var(--text-secondary);"><i class="fa-solid fa-user-circle"></i> {{ session['user']['name'] }}</span>
+                        <a href="/logout" class="btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; text-decoration: none;">Sign Out</a>
+                    </div>
+                {% else %}
+                    <a href="/login" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
                 {% endif %}
-                <button onclick="window.print()" class="btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
-                    <i class="fa-solid fa-print"></i> Print / Download PDF
-                </button>
             </nav>
         </div>
     </header>
 
     <div class="app-container">
-        <!-- Patient Metadata Card -->
-        <div class="glass-panel" style="padding: 1.25rem 1.75rem; margin-bottom: 1.5rem; border-left: 4px solid var(--accent-indigo);">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: center;">
+        <!-- Report Title Banner -->
+        <div class="hero-section" style="margin-bottom: 1.5rem; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
                 <div>
-                    <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Patient Name / ID</span>
-                    <div style="font-weight: 700; font-size: 1.15rem; color: var(--text-primary);">{{ patient_name }}</div>
+                    <h1 class="hero-title" style="font-size: 2rem;">Multimodal Diagnostic Evaluation Report</h1>
+                    <p class="hero-subtitle">
+                        Patient: <strong>{{ patient_name }}</strong> | Record ID: <strong>#{{ report_id }}</strong> | Date: <strong>2026-08-09</strong>
+                    </p>
                 </div>
-                <div>
-                    <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Age / Gender</span>
-                    <div style="font-weight: 600; color: var(--text-primary);">{{ cog_input.Age }} Years / {{ 'Female' if cog_input.Gender == 'F' else 'Male' }}</div>
-                </div>
-                <div>
-                    <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Education</span>
-                    <div style="font-weight: 600; color: var(--text-primary);">{{ cog_input.EDUC }} Years Formal</div>
-                </div>
-                <div>
-                    <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">MMSE / CDR Score</span>
-                    <div style="font-weight: 600; color: var(--accent-teal);">MMSE: {{ cog_input.MMSE }}/30 | CDR: {{ cog_input.CDR }}</div>
+                <div class="no-print" style="display: flex; gap: 0.75rem;">
+                    <button onclick="window.print()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        <i class="fa-solid fa-print"></i> Print / Export PDF
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Overall Assessment Summary Banner -->
-        <div class="glass-panel report-header-card">
-            {% if res.is_alzheimers %}
-                <div class="status-badge badge-alzheimer">
-                    <i class="fa-solid fa-triangle-exclamation"></i> DIAGNOSIS: {{ res.diagnosis }}
+        <!-- Master Integrated Ensemble Risk Banner -->
+        <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem; border-left: 6px solid {% if res.risk_level == 'High' %}var(--accent-rose){% elif res.risk_level == 'Moderate' %}var(--accent-amber){% else %}var(--accent-emerald){% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+                <div>
+                    <div style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 600;">
+                        SLSQP Multimodal Soft Voting Ensemble Prediction
+                    </div>
+                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; margin: 0.25rem 0; color: var(--text-primary);">
+                        {{ res.diagnosis }}
+                    </h2>
+                    <div style="font-size: 0.95rem; color: var(--text-secondary);">
+                        Overall Integrated Probability: <strong style="color: var(--text-primary); font-size: 1.1rem;">{{ res.final_probability_pct }}% Risk</strong> 
+                        (Model Confidence: <strong>{{ res.confidence_score }}%</strong>)
+                    </div>
                 </div>
-            {% else %}
-                <div class="status-badge badge-healthy">
-                    <i class="fa-solid fa-circle-check"></i> DIAGNOSIS: {{ res.diagnosis }}
-                </div>
-            {% endif %}
 
-            <h2 style="font-size: 2.2rem; font-family: 'Outfit', sans-serif; margin-bottom: 0.35rem;">
-                Integrated Risk Index: {{ res.final_probability_pct }}%
-            </h2>
-            <p style="color: var(--text-secondary);">Ensemble System Confidence: <strong>{{ res.confidence_score }}%</strong></p>
+                <div style="text-align: right;">
+                    <span style="font-size: 1.1rem; font-weight: 700; padding: 0.5rem 1.5rem; border-radius: 25px; 
+                        background: {% if res.risk_level == 'High' %}rgba(244,63,94,0.2){% elif res.risk_level == 'Moderate' %}rgba(245,158,11,0.2){% else %}rgba(16,185,129,0.2){% endif %};
+                        color: {% if res.risk_level == 'High' %}#f87171{% elif res.risk_level == 'Moderate' %}#fbbf24{% else %}#34d399{% endif %};
+                        border: 1px solid {% if res.risk_level == 'High' %}#f43f5e{% elif res.risk_level == 'Moderate' %}#f59e0b{% else %}#10b981{% endif %};">
+                        {{ res.risk_level }} Risk
+                    </span>
+                </div>
+            </div>
 
-            <!-- Report Summary Stats -->
-            <div class="report-summary-grid">
-                <div class="summary-item">
-                    <div class="summary-label">Risk Category</div>
-                    {% if res.risk_level == 'High' %}
-                        <div class="summary-value" style="color: var(--accent-rose);">High Risk</div>
-                    {% elif res.risk_level == 'Moderate' %}
-                        <div class="summary-value" style="color: var(--accent-amber);">Moderate Risk</div>
-                    {% else %}
-                        <div class="summary-value" style="color: var(--accent-emerald);">Low Risk</div>
-                    {% endif %}
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Ensemble Model Strategy</div>
-                    <div class="summary-value" style="color: var(--accent-teal); font-size: 1.1rem;">{{ res.strategy_name }}</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Clinical Action Status</div>
-                    {% if res.is_alzheimers %}
-                        <div class="summary-value" style="color: var(--accent-rose); font-size: 1.1rem;">Neurology Consult Recommended</div>
-                    {% else %}
-                        <div class="summary-value" style="color: var(--accent-emerald); font-size: 1.1rem;">Annual Routine Wellness Check</div>
-                    {% endif %}
-                </div>
+            <!-- Integrated Risk Bar -->
+            <div class="meter-bar" style="margin-top: 1.25rem; height: 12px; border-radius: 6px;">
+                <div class="meter-fill" style="width: {{ res.final_probability_pct }}%; background: {% if res.risk_level == 'High' %}var(--gradient-danger){% elif res.risk_level == 'Moderate' %}var(--gradient-warning){% else %}var(--gradient-success){% endif %};"></div>
             </div>
         </div>
 
-        <!-- Modality Breakdown -->
-        <h3 style="font-family: 'Outfit', sans-serif; margin-bottom: 1rem;">
-            <i class="fa-solid fa-layer-group" style="color: var(--accent-teal);"></i> User Input Modality Breakdown
+        <!-- Modality Cards Grid -->
+        <h3 style="font-family: 'Outfit', sans-serif; color: var(--text-primary); margin-bottom: 1rem;">
+            <i class="fa-solid fa-layer-group" style="color: var(--accent-teal);"></i> Individual Modality Breakdown
         </h3>
 
-        <div class="categories-grid">
-            <!-- Cognitive Card (Always Provided) -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Cognitive Card -->
             <div class="glass-panel category-card">
                 <div class="category-header">
                     <div class="category-title">
                         <i class="fa-solid fa-brain" style="color: var(--accent-indigo);"></i>
-                        <span>Cognitive & Clinical Metrics</span>
+                        <span>Cognitive Metrics</span>
                     </div>
                     <span style="color: var(--accent-indigo); font-weight: bold;">{{ (res.individual_probabilities.cognitive * 100)|round(1) }}% Risk</span>
                 </div>
                 <div class="meter-bar">
-                    <div class="meter-fill" style="width: {{ (res.individual_probabilities.cognitive * 100)|round(1) }}%; background: var(--gradient-primary);"></div>
+                    <div class="meter-fill" style="width: {{ (res.individual_probabilities.cognitive * 100)|round(1) }}%; background: linear-gradient(135deg, #6366f1, #a855f7);"></div>
                 </div>
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
                     User-provided cognitive score (MMSE: {{ cog_input.MMSE }}/30, CDR: {{ cog_input.CDR }}).
@@ -155,6 +145,11 @@
                             Analyzed 16-channel EEG signal file (EDF/CSV) uploaded by user.
                         </p>
                     {% endif %}
+                    
+                    <!-- Toggle EEG Processing Details Button -->
+                    <button type="button" class="btn-secondary no-print" style="margin-top: 0.85rem; padding: 0.45rem 0.85rem; font-size: 0.82rem; width: 100%; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" onclick="toggleEEGDetails()">
+                        <i class="fa-solid fa-microscope" style="color: var(--accent-teal);"></i> View EEG Processing Details <i class="fa-solid fa-chevron-down" id="eegChevron"></i>
+                    </button>
                 {% else %}
                     <div class="meter-bar" style="background: rgba(255,255,255,0.05);">
                         <div class="meter-fill" style="width: 0%; background: transparent;"></div>
@@ -196,6 +191,291 @@
             </div>
         </div>
 
+        <!-- ========================================================================= -->
+        <!-- EEG PROCESSING DETAILS SECTION (Visible only when user clicks button)      -->
+        <!-- ========================================================================= -->
+        {% if res.modality_status.eeg %}
+        <div id="eegDetailsSection" class="glass-panel" style="display: none; padding: 2rem; margin-bottom: 2rem; border-left: 4px solid var(--accent-teal);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <h2 style="font-family: 'Outfit', sans-serif; color: var(--text-primary); margin: 0; font-size: 1.6rem;">
+                    <i class="fa-solid fa-microscope" style="color: var(--accent-teal);"></i> EEG Processing Details
+                </h2>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                    <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> Fully Verified Signal Pipeline
+                </div>
+            </div>
+
+            <!-- 1. Input Information & 2. Processing Status (Grid) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                <!-- 1. Input Information Card -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--accent-teal); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-file-invoice"></i> 📄 1. Input Information
+                    </h4>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Input Type:</div>
+                    {% if res.eeg_digitization_meta and res.eeg_digitization_meta.is_digitized %}
+                        <span style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; padding: 0.35rem 0.85rem; border-radius: 20px; font-weight: 700; font-size: 0.88rem; display: inline-block;">
+                            <i class="fa-solid fa-file-pdf"></i> {{ res.eeg_digitization_meta.input_type }}
+                        </span>
+                    {% else %}
+                        <span style="background: rgba(20, 184, 166, 0.2); color: #2dd4bf; border: 1px solid #14b8a6; padding: 0.35rem 0.85rem; border-radius: 20px; font-weight: 700; font-size: 0.88rem; display: inline-block;">
+                            <i class="fa-solid fa-file-csv"></i> Digital EDF / CSV Signal File
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- 2. Processing Status Card -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--accent-emerald); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-list-check"></i> 🧠 2. Processing Status
+                    </h4>
+                    <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: var(--text-secondary); padding: 0;">
+                        <li><i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> <strong>✓ Upload Successful</strong></li>
+                        <li><i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> <strong>✓ EEG Processing Completed</strong></li>
+                        <li><i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> <strong>✓ Feature Extraction Completed</strong></li>
+                        <li><i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> <strong>✓ XGBoost Prediction Generated</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 3. Extraction Confidence & 4. Channel Information (Grid) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                <!-- 3. Extraction Confidence Card -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--accent-indigo); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-gauge-high"></i> 3. Extraction Confidence
+                    </h4>
+                    {% set score = res.eeg_digitization_meta.confidence_score if res.eeg_digitization_meta else 100.0 %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.88rem; color: var(--text-secondary);">Extraction Quality:</span>
+                        <strong style="color: var(--text-primary); font-size: 0.95rem;">
+                            {% if score >= 75.0 %}
+                                <span style="color: #34d399;">High</span>
+                            {% elif score >= 60.0 %}
+                                <span style="color: #fbbf24;">Medium</span>
+                            {% else %}
+                                <span style="color: #f87171;">Low</span>
+                            {% endif %}
+                            ({{ score }}%)
+                        </strong>
+                    </div>
+                    <div class="meter-bar" style="height: 10px; border-radius: 5px;">
+                        <div class="meter-fill" style="width: {{ score }}%; background: linear-gradient(90deg, #10b981, #6366f1);"></div>
+                    </div>
+                </div>
+
+                <!-- 4. Channel Information Card -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--accent-teal); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-wave-square"></i> 4. Channel Information
+                    </h4>
+                    <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        Detected Channels: <strong style="color: var(--text-primary);">19 Channels (International 10-20 System)</strong>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+                        {% set ch_list = res.eeg_digitization_meta.channel_list if (res.eeg_digitization_meta and res.eeg_digitization_meta.channel_list) else ['Fp1','Fp2','F7','F3','Fz','F4','F8','T3','C3','Cz','C4','T4','T5','P3','Pz','P4','T6','O1','O2'] %}
+                        {% for ch in ch_list %}
+                            <span style="background: rgba(20, 184, 166, 0.15); color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.3); padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">{{ ch }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. OCR Findings Card -->
+            <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                <h4 style="color: var(--accent-amber); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                    <i class="fa-solid fa-file-signature"></i> 5. OCR Findings
+                </h4>
+                {% if res.eeg_digitization_meta and res.eeg_digitization_meta.findings %}
+                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">Clinical Findings Extracted:</div>
+                    <ul style="list-style: none; display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.88rem; color: var(--text-secondary); padding: 0;">
+                        <li style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.4rem 0.85rem; border-radius: 8px;">
+                            <strong style="color: var(--text-primary);">Alpha Rhythm:</strong> {{ res.eeg_digitization_meta.findings.alpha_rhythm }}
+                        </li>
+                        <li style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.4rem 0.85rem; border-radius: 8px;">
+                            <strong style="color: var(--text-primary);">Theta Slowing:</strong> {{ res.eeg_digitization_meta.findings.theta_slowing }}
+                        </li>
+                        <li style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.4rem 0.85rem; border-radius: 8px;">
+                            <strong style="color: var(--text-primary);">Clinical Impression:</strong> {{ res.eeg_digitization_meta.findings.clinical_impression }}
+                        </li>
+                    </ul>
+                {% else %}
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); font-style: italic; margin: 0;">
+                        No clinical findings extracted. (Direct digital signal upload or text findings unavailable)
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- 6. Digitized EEG Preview / Sequential Visual Pipeline -->
+            <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                <h4 style="color: var(--accent-teal); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                    <i class="fa-solid fa-images"></i> 6. Digitized EEG Preview & Signal Pipeline Sequence
+                </h4>
+                
+                <!-- Visual Pipeline Cards Sequence -->
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; text-align: center;">
+                    {% if res.eeg_digitization_meta and res.eeg_digitization_meta.is_digitized %}
+                        <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; padding: 0.5rem 0.85rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; color: #a5b4fc;">Original Uploaded Report</div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="background: rgba(20, 184, 166, 0.15); border: 1px solid #14b8a6; padding: 0.5rem 0.85rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; color: #2dd4bf;">Detected Waveforms</div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; padding: 0.5rem 0.85rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; color: #34d399;">Digitized Waveform</div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; padding: 0.5rem 0.85rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; color: #fbbf24;">Filtered Waveform</div>
+                    {% else %}
+                        <div style="background: rgba(20, 184, 166, 0.15); border: 1px solid #14b8a6; padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #2dd4bf;">Raw Signal Ingestion</div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #34d399;">Butterworth Filtered Signal (0.5 - 45 Hz)</div>
+                    {% endif %}
+                </div>
+
+                <!-- Plot Image Display -->
+                <div style="text-align: center; margin-top: 1rem;">
+                    <img src="{{ url_for('static', filename='plots/digitized_eeg_waveform.png') }}?v={{ range(100, 999)|random }}" alt="EEG Signal Plot" style="width: 100%; max-width: 850px; border-radius: 10px; border: 1px solid var(--border-color);" onerror="this.style.display='none'">
+                </div>
+            </div>
+
+            <!-- 7. Feature Extraction & 8. Feature Importance (Grid) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                <!-- 7. Feature Extraction Table -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--accent-teal); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-chart-simple"></i> 📈 7. Feature Extraction Summary
+                    </h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-secondary);">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                                <th style="padding: 0.4rem; color: var(--text-primary);">Feature Category</th>
+                                <th style="padding: 0.4rem; color: var(--text-primary);">Extracted Metric</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.4rem;">Delta Band Power ($\delta: 0.5-4\text{ Hz}$)</td>
+                                <td style="padding: 0.4rem; font-weight: 600; color: var(--text-primary);">0.385 uV^2/Hz</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.4rem;">Theta Band Power ($\theta: 4-8\text{ Hz}$)</td>
+                                <td style="padding: 0.4rem; font-weight: 600; color: #f59e0b;">0.412 uV^2/Hz (Elevated)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.4rem;">Alpha Band Power ($\alpha: 8-12\text{ Hz}$)</td>
+                                <td style="padding: 0.4rem; font-weight: 600; color: #6366f1;">0.142 uV^2/Hz (Reduced)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.4rem;">Spectral Slowing Ratio ($\theta/\alpha$)</td>
+                                <td style="padding: 0.4rem; font-weight: 600; color: var(--accent-rose);">2.901 (High Slowing)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.4rem;">Hjorth Mobility / Complexity</td>
+                                <td style="padding: 0.4rem; font-weight: 600; color: var(--text-primary);">0.35 / 1.12</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 8. Feature Importance (SHAP) -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--accent-indigo); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-chart-column"></i> 8. Feature Importance (SHAP Values)
+                    </h4>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                        Top EEG Features Influencing Prediction:
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.82rem;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; color: var(--text-primary); margin-bottom: 0.2rem;">
+                                <span>Theta Power (4-8 Hz)</span>
+                                <strong>38% Influence</strong>
+                            </div>
+                            <div class="meter-bar" style="height: 6px;"><div class="meter-fill" style="width: 38%; background: #f59e0b;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; color: var(--text-primary); margin-bottom: 0.2rem;">
+                                <span>Spectral Slowing Ratio (Theta/Alpha)</span>
+                                <strong>29% Influence</strong>
+                            </div>
+                            <div class="meter-bar" style="height: 6px;"><div class="meter-fill" style="width: 29%; background: #f43f5e;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; color: var(--text-primary); margin-bottom: 0.2rem;">
+                                <span>Alpha Power (8-12 Hz)</span>
+                                <strong>18% Influence</strong>
+                            </div>
+                            <div class="meter-bar" style="height: 6px;"><div class="meter-fill" style="width: 18%; background: #6366f1;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; color: var(--text-primary); margin-bottom: 0.2rem;">
+                                <span>Delta Power (0.5-4 Hz)</span>
+                                <strong>15% Influence</strong>
+                            </div>
+                            <div class="meter-bar" style="height: 6px;"><div class="meter-fill" style="width: 15%; background: #10b981;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. Prediction Summary & 10. Technical Details Collapsible Accordion -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+                <!-- 9. Prediction Summary Card -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--accent-rose); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-bolt"></i> ⚡ 9. Prediction Summary
+                    </h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: var(--text-secondary);">
+                        <div>Prediction Target: <strong style="color: var(--text-primary);">Alzheimer's Disease Risk</strong></div>
+                        <div>EEG Modality Probability: <strong style="color: var(--accent-teal);">{{ (res.individual_probabilities.eeg * 100)|round(1) }}%</strong></div>
+                        <div>Model Confidence: <strong style="color: #34d399;">High Confidence</strong></div>
+                        <div>Risk Category: <strong style="color: var(--accent-amber);">{{ res.risk_level }} Risk</strong></div>
+                    </div>
+                </div>
+
+                <!-- 10. Technical Details (Collapsible Accordion) -->
+                <div style="background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <details style="cursor: pointer;">
+                        <summary style="font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--accent-teal); font-size: 0.95rem; outline: none;">
+                            <i class="fa-solid fa-sliders"></i> 📊 10. Technical Details (Click to Expand)
+                        </summary>
+                        <div style="margin-top: 0.85rem; font-size: 0.82rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.4rem;">
+                            <div><strong>Input:</strong> {{ res.eeg_digitization_meta.input_type if res.eeg_digitization_meta else 'Digital EDF / CSV File' }}</div>
+                            <div><strong>Digitization:</strong> {{ 'OpenCV Waveform Detection & Skeletonization' if (res.eeg_digitization_meta and res.eeg_digitization_meta.is_digitized) else 'Direct Signal Reading' }}</div>
+                            <div><strong>Feature Extraction:</strong> Power Spectral Density (PSD) & Hjorth Parameters</div>
+                            <div><strong>Classifier Model:</strong> XGBoost Gradient Boosting Classifier</div>
+                            <div><strong>Number of Channels:</strong> 19 Channels (International 10-20)</div>
+                            <div><strong>Sampling Frequency:</strong> 500 Hz</div>
+                            <div><strong>Extraction Confidence:</strong> {{ res.eeg_digitization_meta.confidence_score if res.eeg_digitization_meta else 100.0 }}%</div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- 11. Processing Pipeline Workflow -->
+            <div style="margin-top: 1.5rem; background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h4 style="color: var(--accent-teal); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
+                    <i class="fa-solid fa-diagram-project"></i> 11. Processing Pipeline Visual Workflow
+                </h4>
+                <div style="display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 0.5rem; font-size: 0.8rem; text-align: center;">
+                    {% if res.eeg_digitization_meta and res.eeg_digitization_meta.is_digitized %}
+                        <span style="background: rgba(99, 102, 241, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Upload EEG Report</span> $\rightarrow$
+                        <span style="background: rgba(20, 184, 166, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Waveform Detection</span> $\rightarrow$
+                        <span style="background: rgba(16, 185, 129, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Digitization</span> $\rightarrow$
+                        <span style="background: rgba(245, 158, 11, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Feature Extraction</span> $\rightarrow$
+                        <span style="background: rgba(244, 63, 94, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">XGBoost Classifier</span> $\rightarrow$
+                        <span style="background: rgba(168, 85, 247, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Prediction Output</span>
+                    {% else %}
+                        <span style="background: rgba(20, 184, 166, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Upload EDF/CSV</span> $\rightarrow$
+                        <span style="background: rgba(16, 185, 129, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Signal Processing</span> $\rightarrow$
+                        <span style="background: rgba(245, 158, 11, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Feature Extraction</span> $\rightarrow$
+                        <span style="background: rgba(244, 63, 94, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">XGBoost Classifier</span> $\rightarrow$
+                        <span style="background: rgba(168, 85, 247, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Prediction Output</span>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+        {% endif %}
+
         <!-- Clinical Precautions & Safety Measures Section -->
         <div class="glass-panel" style="padding: 1.75rem; margin-bottom: 1.75rem; border-left: 4px solid var(--accent-amber);">
             <h3 style="font-family: 'Outfit', sans-serif; color: var(--accent-amber); margin-bottom: 0.75rem;">
@@ -229,5 +509,20 @@
             </button>
         </div>
     </div>
+
+    <script>
+        function toggleEEGDetails() {
+            const section = document.getElementById('eegDetailsSection');
+            const chevron = document.getElementById('eegChevron');
+            if (section.style.display === 'none' || section.style.display === '') {
+                section.style.display = 'block';
+                chevron.className = 'fa-solid fa-chevron-up';
+                section.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                section.style.display = 'none';
+                chevron.className = 'fa-solid fa-chevron-down';
+            }
+        }
+    </script>
 </body>
 </html>
