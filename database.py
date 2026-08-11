@@ -198,7 +198,7 @@ def get_all_reports_admin():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT r.*, u.username as clinician_name 
+        SELECT r.*, u.username as account_username, u.email as account_email 
         FROM reports r 
         LEFT JOIN users u ON r.user_id = u.id 
         ORDER BY r.created_at DESC
@@ -206,3 +206,28 @@ def get_all_reports_admin():
     reports = [dict(r) for r in cursor.fetchall()]
     conn.close()
     return reports
+
+def get_admin_stats():
+    """Calculates high-level system metrics for Admin Dashboard."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) as cnt FROM users")
+    total_users = cursor.fetchone()['cnt']
+
+    cursor.execute("SELECT COUNT(*) as cnt FROM reports")
+    total_reports = cursor.fetchone()['cnt']
+
+    cursor.execute("SELECT COUNT(*) as cnt FROM reports WHERE risk_level = 'High'")
+    high_risk = cursor.fetchone()['cnt']
+
+    cursor.execute("SELECT COUNT(*) as cnt FROM reports WHERE risk_level = 'Low'")
+    healthy = cursor.fetchone()['cnt']
+
+    conn.close()
+    return {
+        'total_users': total_users,
+        'total_reports': total_reports,
+        'high_risk': high_risk,
+        'healthy': healthy
+    }

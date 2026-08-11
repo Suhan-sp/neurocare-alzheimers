@@ -9,7 +9,7 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from werkzeug.utils import secure_filename
 from predict import MultimodalPredictor
-from database import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin
+from database import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin, get_admin_stats
 from utils.logger import logger
 
 app = Flask(__name__)
@@ -162,7 +162,7 @@ def my_reports():
         return redirect(url_for('login'))
     user_id = session['user'].get('id', 1)
     reports = get_user_reports(user_id)
-    return render_template('reports.html', reports=reports)
+    return render_template('my_reports.html', reports=reports)
 
 @app.route('/admin')
 def admin_dashboard():
@@ -170,7 +170,8 @@ def admin_dashboard():
     if not session.get('user') or session['user'].get('role') != 'admin':
         return redirect(url_for('index'))
     all_reports = get_all_reports_admin()
-    return render_template('admin.html', reports=all_reports)
+    stats = get_admin_stats()
+    return render_template('admin_dashboard.html', stats=stats, reports=all_reports)
 
 if __name__ == '__main__':
     from waitress import serve
