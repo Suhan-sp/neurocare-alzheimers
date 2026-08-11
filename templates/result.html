@@ -450,28 +450,7 @@
                 </div>
             </div>
 
-            <!-- 11. Processing Pipeline Workflow -->
-            <div style="margin-top: 1.5rem; background: rgba(10, 15, 29, 0.5); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
-                <h4 style="color: var(--accent-teal); font-family: 'Outfit', sans-serif; margin-bottom: 0.75rem;">
-                    <i class="fa-solid fa-diagram-project"></i> 11. Processing Pipeline Visual Workflow
-                </h4>
-                <div style="display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 0.5rem; font-size: 0.8rem; text-align: center;">
-                    {% if res.eeg_digitization_meta and res.eeg_digitization_meta.is_digitized %}
-                        <span style="background: rgba(99, 102, 241, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Upload EEG Report</span> $\rightarrow$
-                        <span style="background: rgba(20, 184, 166, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Waveform Detection</span> $\rightarrow$
-                        <span style="background: rgba(16, 185, 129, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Digitization</span> $\rightarrow$
-                        <span style="background: rgba(245, 158, 11, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Feature Extraction</span> $\rightarrow$
-                        <span style="background: rgba(244, 63, 94, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">XGBoost Classifier</span> $\rightarrow$
-                        <span style="background: rgba(168, 85, 247, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Prediction Output</span>
-                    {% else %}
-                        <span style="background: rgba(20, 184, 166, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Upload EDF/CSV</span> $\rightarrow$
-                        <span style="background: rgba(16, 185, 129, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Signal Processing</span> $\rightarrow$
-                        <span style="background: rgba(245, 158, 11, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Feature Extraction</span> $\rightarrow$
-                        <span style="background: rgba(244, 63, 94, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">XGBoost Classifier</span> $\rightarrow$
-                        <span style="background: rgba(168, 85, 247, 0.2); padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600;">Prediction Output</span>
-                    {% endif %}
-                </div>
-            </div>
+
 
         </div>
         {% endif %}
