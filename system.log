@@ -2846,3 +2846,34 @@
 [2026-08-11 19:08:53] [INFO] [alzheimer_system]: User 'Doctor2' logged out.
 [2026-08-11 19:09:18] [INFO] [alzheimer_system]: Administrator 'admin' logged in successfully.
 [2026-08-11 19:09:27] [INFO] [alzheimer_system]: User 'admin' logged out.
+[2026-08-11 19:13:24] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-11 19:13:25] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-11 19:14:19] [INFO] [alzheimer_system]: Doctor 'Doctor1' logged in successfully.
+[2026-08-11 19:14:22] [INFO] [alzheimer_system]: User 'Doctor1' logged out.
+[2026-08-11 19:14:42] [INFO] [alzheimer_system]: Doctor1 authorization password verified successfully. Access granted to New Doctor registration.
+[2026-08-11 19:18:19] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-11 19:18:20] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-11 19:31:06] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-11 19:31:08] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-11 19:32:41] [INFO] [alzheimer_system]: Doctor1 authorization password verified successfully. Access granted to New Doctor registration.
+[2026-08-11 19:34:01] [INFO] [alzheimer_system]: Patient 'suhansp05@gmail.com' logged in successfully.
+[2026-08-11 19:35:02] [INFO] [alzheimer_system]: Saved patient EEG file to static\uploads\Screenshot 2026-08-08 120850.png
+[2026-08-11 19:35:02] [INFO] [alzheimer_system]: Saved patient speech audio file to static\uploads\Process-test-001__PFT.wav
+[2026-08-11 19:35:02] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-08-11 19:35:02] [INFO] [alzheimer_system]: Cognitive Model (Logistic Regression) Output Probability: 0.153 (15.3%)
+[2026-08-11 19:35:02] [INFO] [alzheimer_system]: Detected scanned EEG report file (.png). Initiating EEG Report Digitizer Service...
+[2026-08-11 19:35:20] [INFO] [alzheimer_system]: EEG Model (XGBoost Classifier) Output Probability: 0.919 (91.9%)
+[2026-08-11 19:35:45] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.127 (12.7%)
+[2026-08-11 19:35:45] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 39.7% (Moderate Risk)
+[2026-08-11 19:36:59] [INFO] [alzheimer_system]: Saved patient EEG file to static\uploads\Screenshot 2026-08-08 121615.png
+[2026-08-11 19:36:59] [INFO] [alzheimer_system]: Saved patient speech audio file to static\uploads\healthy_voice_sample.wav
+[2026-08-11 19:36:59] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-08-11 19:36:59] [INFO] [alzheimer_system]: Cognitive Model (Logistic Regression) Output Probability: 0.153 (15.3%)
+[2026-08-11 19:36:59] [INFO] [alzheimer_system]: Detected scanned EEG report file (.png). Initiating EEG Report Digitizer Service...
+[2026-08-11 19:37:06] [INFO] [alzheimer_system]: EEG Model (XGBoost Classifier) Output Probability: 0.889 (88.9%)
+[2026-08-11 19:37:07] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.361 (36.1%)
+[2026-08-11 19:37:07] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 46.5% (Moderate Risk)
+[2026-08-11 19:40:49] [INFO] [alzheimer_system]: User 'suhan' logged out.
+[2026-08-11 19:43:43] [INFO] [alzheimer_system]: Administrator 'admin' logged in successfully.
+[2026-08-11 19:44:24] [INFO] [alzheimer_system]: User 'admin' logged out.
+[2026-08-11 19:45:02] [INFO] [alzheimer_system]: Administrator 'admin' logged in successfully.

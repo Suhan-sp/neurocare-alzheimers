@@ -33,7 +33,7 @@ predictor = MultimodalPredictor()
 def index():
     """
     Root route:
-    If unauthenticated -> Render 3-Portal Landing Page (Patient Login, Doctor Login, Admin Login).
+    If unauthenticated -> Render 2-Portal Landing Page (Patient Login, Doctor Login).
     If authenticated -> Render Patient/Doctor Assessment Dashboard.
     """
     if not session.get('user'):
@@ -117,45 +117,8 @@ def doctor_login():
             return render_template('doctor_login.html', error="Invalid username or password.")
     return render_template('doctor_login.html')
 
-@app.route('/doctor/authorize', methods=['GET', 'POST'])
-def doctor_authorize():
-    """Requires Doctor1 authorization password to grant access for New Doctor registration."""
-    if request.method == 'POST':
-        auth_pass = request.form.get('auth_password', '').strip()
-        doc1_user = authenticate_user('Doctor1', auth_pass)
-        if doc1_user and doc1_user.get('role') == 'doctor':
-            session['doctor1_authorized'] = True
-            logger.info("Doctor1 authorization password verified successfully. Access granted to New Doctor registration.")
-            return redirect(url_for('doctor_register'))
-        else:
-            return render_template('doctor_authorize.html', error="Invalid Doctor1 Authorization Password. Authorization failed.")
-    return render_template('doctor_authorize.html')
-
-@app.route('/doctor/register', methods=['GET', 'POST'])
-def doctor_register():
-    """Allows registration of a new doctor if Doctor1 password was verified or Doctor1 is logged in."""
-    is_doc1_logged_in = session.get('user') and session['user'].get('role') == 'doctor' and session['user'].get('username', '').lower() == 'doctor1'
-    is_authorized = session.get('doctor1_authorized', False)
-
-    if not is_doc1_logged_in and not is_authorized:
-        return redirect(url_for('doctor_authorize'))
-
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '').strip()
-
-        success, msg_or_id = register_user(username, email, password, role='doctor')
-        if success:
-            logger.info(f"Registered new Doctor account '{username}'.")
-            return render_template('doctor_register.html', msg=f"New Doctor account '{username}' registered successfully!")
-        else:
-            return render_template('doctor_register.html', error=msg_or_id)
-            
-    return render_template('doctor_register.html')
-
 # ==========================================
-# 3. ADMIN AUTHENTICATION PORTAL
+# 3. ADMIN AUTHENTICATION & DOCTOR REGISTRATION
 # ==========================================
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -191,6 +154,48 @@ def admin_dashboard():
     all_reports = get_all_reports_admin()
     stats = get_admin_stats()
     return render_template('admin_dashboard.html', stats=stats, reports=all_reports)
+
+@app.route('/admin/authorize-doctor', methods=['GET', 'POST'])
+def admin_authorize_doctor():
+    """Requires Admin authorization password to grant access for New Doctor registration."""
+    if not session.get('user') or session['user'].get('role') != 'admin':
+        return render_template('admin_login.html', error="Access denied. Administrator credentials required.")
+
+    if request.method == 'POST':
+        admin_pass = request.form.get('admin_password', '').strip()
+        admin_user = authenticate_user('admin', admin_pass)
+        if admin_user and admin_user.get('role') == 'admin':
+            session['admin_doctor_authorized'] = True
+            logger.info("Admin authorization password verified. Access granted to New Doctor registration.")
+            return redirect(url_for('admin_register_doctor'))
+        else:
+            return render_template('admin_authorize_doctor.html', error="Invalid Admin Authorization Password. Authorization failed.")
+    return render_template('admin_authorize_doctor.html')
+
+@app.route('/admin/register-doctor', methods=['GET', 'POST'])
+@app.route('/doctor/register', methods=['GET', 'POST'])
+def admin_register_doctor():
+    """Allows Admin to register a new doctor after verifying Admin password."""
+    if not session.get('user') or session['user'].get('role') != 'admin':
+        return render_template('admin_login.html', error="Access denied. Administrator credentials required.")
+
+    is_authorized = session.get('admin_doctor_authorized', False)
+    if not is_authorized:
+        return redirect(url_for('admin_authorize_doctor'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+
+        success, msg_or_id = register_user(username, email, password, role='doctor')
+        if success:
+            logger.info(f"Admin registered new Doctor account '{username}'.")
+            return render_template('doctor_register.html', msg=f"New Doctor account '{username}' registered successfully!")
+        else:
+            return render_template('doctor_register.html', error=msg_or_id)
+            
+    return render_template('doctor_register.html')
 
 @app.route('/logout')
 def logout():
