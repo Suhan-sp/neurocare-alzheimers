@@ -12,7 +12,8 @@ from werkzeug.utils import secure_filename
 from predict import MultimodalPredictor
 from database import (
     init_db, register_user, authenticate_user, 
-    save_patient_report, get_user_reports, get_all_reports_admin, get_admin_stats
+    save_patient_report, get_user_reports, get_all_reports_admin, 
+    get_admin_stats, get_patients_grouped_by_user, get_doctors_with_patients
 )
 from utils.logger import logger
 
@@ -148,12 +149,20 @@ def admin_login():
 @app.route('/admin')
 @app.route('/admin/dashboard')
 def admin_dashboard():
-    """Admin dashboard listing all patient reports across clinicians (Role Protected)."""
+    """Admin dashboard listing all patient reports, patient user groups, and doctor accounts (Role Protected)."""
     if not session.get('user') or session['user'].get('role') != 'admin':
         return render_template('admin_login.html', error="Access denied. Administrator credentials required.")
     all_reports = get_all_reports_admin()
     stats = get_admin_stats()
-    return render_template('admin_dashboard.html', stats=stats, reports=all_reports)
+    patient_groups = get_patients_grouped_by_user()
+    doctor_groups = get_doctors_with_patients()
+    return render_template(
+        'admin_dashboard.html', 
+        stats=stats, 
+        reports=all_reports, 
+        patient_groups=patient_groups, 
+        doctor_groups=doctor_groups
+    )
 
 @app.route('/admin/authorize-doctor', methods=['GET', 'POST'])
 def admin_authorize_doctor():

@@ -67,7 +67,6 @@ def init_db():
         conn.commit()
         logger.info("Default Admin account created: username='admin', password='admin@123'")
     else:
-        # Update admin password hash to admin@123
         cursor.execute("UPDATE users SET password_hash = ?, role = 'admin' WHERE username = ?", (admin_pass, "admin"))
         conn.commit()
 
@@ -139,13 +138,7 @@ def authenticate_user(username_or_email, password):
     return None
 
 def save_patient_report(user_id, patient_name, *args, **kwargs):
-    """
-    Saves a generated patient report into the database.
-    Flexible signature supports:
-    - save_patient_report(user_id, patient_name, age, gender, report_dict)
-    - save_patient_report(user_id, patient_name, report_dict, cog_dict)
-    - save_patient_report(user_id, patient_name, report_dict)
-    """
+    """Saves a generated patient report into the database."""
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -153,7 +146,6 @@ def save_patient_report(user_id, patient_name, *args, **kwargs):
     gender = 'M'
     report_dict = {}
 
-    # Unpack positional args dynamically
     if len(args) == 3:
         age = args[0]
         gender = args[1]
@@ -171,7 +163,6 @@ def save_patient_report(user_id, patient_name, *args, **kwargs):
         if isinstance(args[0], dict):
             report_dict = args[0]
 
-    # Override from kwargs if explicitly provided
     if kwargs.get('report_dict'):
         report_dict = kwargs['report_dict']
     if kwargs.get('age'):
@@ -232,7 +223,7 @@ def get_all_reports_admin():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT r.*, u.username as account_username, u.email as account_email 
+        SELECT r.*, u.username as account_username, u.email as account_email, u.role as user_role 
         FROM reports r 
         LEFT JOIN users u ON r.user_id = u.id 
         ORDER BY r.created_at DESC
@@ -241,6 +232,42 @@ def get_all_reports_admin():
     conn.close()
     return reports
 
+def get_patients_grouped_by_user():
+    """
+    Retrieves all Patient Account User IDs and all patients/reports under each user ID.
+    Returns: List of User Dicts with attached 'reports' list.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM users WHERE role IN ('patient', 'user') ORDER BY id ASC")
+    user_rows = [dict(u) for u in cursor.fetchall()]
+
+    for user in user_rows:
+        cursor.execute("SELECT * FROM reports WHERE user_id = ? ORDER BY created_at DESC", (user['id'],))
+        user['reports'] = [dict(r) for r in cursor.fetchall()]
+
+    conn.close()
+    return user_rows
+
+def get_doctors_with_patients():
+    """
+    Retrieves all Doctor Accounts and all patients evaluated under each Doctor.
+    Returns: List of Doctor Dicts with attached 'reports' list.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM users WHERE role = 'doctor' ORDER BY username ASC")
+    doctor_rows = [dict(d) for d in cursor.fetchall()]
+
+    for doc in doctor_rows:
+        cursor.execute("SELECT * FROM reports WHERE user_id = ? ORDER BY created_at DESC", (doc['id'],))
+        doc['reports'] = [dict(r) for r in cursor.fetchall()]
+
+    conn.close()
+    return doctor_rows
+
 def get_admin_stats():
     """Calculates high-level system metrics for Admin Dashboard."""
     conn = get_db_connection()
@@ -248,6 +275,9 @@ def get_admin_stats():
 
     cursor.execute("SELECT COUNT(*) as cnt FROM users")
     total_users = cursor.fetchone()['cnt']
+
+    cursor.execute("SELECT COUNT(*) as cnt FROM users WHERE role = 'doctor'")
+    total_doctors = cursor.fetchone()['cnt']
 
     cursor.execute("SELECT COUNT(*) as cnt FROM reports")
     total_reports = cursor.fetchone()['cnt']
@@ -261,6 +291,7 @@ def get_admin_stats():
     conn.close()
     return {
         'total_users': total_users,
+        'total_doctors': total_doctors,
         'total_reports': total_reports,
         'high_risk': high_risk,
         'healthy': healthy

@@ -11,7 +11,7 @@
             </span>
         </div>
         <h1 class="hero-title" style="text-align: left; font-size: 2.2rem;">All Patient Reports & System Analytics</h1>
-        <p style="color: var(--text-secondary);">Monitor patient assessment activity, user registrations, and risk distribution across the system.</p>
+        <p style="color: var(--text-secondary);">Monitor patient assessment activity, user registrations, and doctor-patient associations across the system.</p>
     </div>
     
     <!-- Top-Right Action Button: Register New Doctor -->
@@ -23,7 +23,7 @@
 </div>
 
 <!-- Admin Summary Metric Cards -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 2.25rem;">
     <div class="glass-panel" style="padding: 1.25rem; text-align: center;">
         <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Total Registered Users</div>
         <div style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--accent-teal); margin-top: 0.25rem;">
@@ -31,8 +31,14 @@
         </div>
     </div>
     <div class="glass-panel" style="padding: 1.25rem; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Total Reports Generated</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Active Doctors</div>
         <div style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--accent-indigo); margin-top: 0.25rem;">
+            {{ stats.total_doctors }}
+        </div>
+    </div>
+    <div class="glass-panel" style="padding: 1.25rem; text-align: center;">
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Total Reports Generated</div>
+        <div style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--accent-amber); margin-top: 0.25rem;">
             {{ stats.total_reports }}
         </div>
     </div>
@@ -50,59 +56,201 @@
     </div>
 </div>
 
-<!-- System Patient Table -->
-<h3 style="font-family: 'Outfit', sans-serif; margin-bottom: 1rem;">
-    <i class="fa-solid fa-hospital-user" style="color: var(--accent-teal);"></i> Complete Patient Reports Register
-</h3>
+<!-- COMPONENT 1: PATIENTS REGISTER (User IDs & Patients Under Each User) -->
+<div style="margin-bottom: 3rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; color: var(--text-primary);">
+            <i class="fa-solid fa-users" style="color: var(--accent-teal);"></i> 1. Patients Register (User Accounts & Patient Records)
+        </h3>
+        <span style="font-size: 0.82rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 0.25rem 0.75rem; border-radius: 12px;">
+            Grouped by User ID
+        </span>
+    </div>
 
-{% if reports %}
-    <div class="glass-panel" style="padding: 1.5rem; overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <th style="padding: 0.85rem;">Date & Time</th>
-                    <th style="padding: 0.85rem;">Patient Name</th>
-                    <th style="padding: 0.85rem;">Account User / Email</th>
-                    <th style="padding: 0.85rem;">Age / Gender</th>
-                    <th style="padding: 0.85rem;">Diagnosis</th>
-                    <th style="padding: 0.85rem;">Risk Index</th>
-                    <th style="padding: 0.85rem;">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in reports %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <td style="padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">{{ r.created_at }}</td>
-                        <td style="padding: 1rem; font-weight: 700; color: var(--text-primary);">{{ r.patient_name }}</td>
-                        <td style="padding: 1rem; color: var(--accent-teal);">
-                            {% if r.account_username %}
-                                {{ r.account_username }} <br><span style="font-size: 0.78rem; color: var(--text-muted);">{{ r.account_email }}</span>
-                            {% else %}
-                                <span style="color: var(--text-muted); italic;">Guest / Anonymous</span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 1rem; color: var(--text-secondary);">{{ r.age }} yrs / {{ r.gender }}</td>
-                        <td style="padding: 1rem;">{{ r.diagnosis }}</td>
-                        <td style="padding: 1rem; font-weight: 800; color: var(--accent-teal);">{{ r.final_probability_pct }}%</td>
-                        <td style="padding: 1rem;">
-                            {% if r.risk_level == 'High' %}
-                                <span style="background: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">HIGH</span>
-                            {% elif r.risk_level == 'Moderate' %}
-                                <span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">MODERATE</span>
-                            {% else %}
-                                <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">LOW</span>
-                            {% endif %}
-                        </td>
+    {% if patient_groups %}
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            {% for u in patient_groups %}
+                <div class="glass-panel" style="padding: 1.5rem; border-left: 4px solid var(--accent-teal);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                        <div>
+                            <span style="background: rgba(20, 184, 166, 0.2); color: var(--accent-teal); padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 700; font-size: 0.82rem; margin-right: 0.5rem;">
+                                USER ID #{{ u.id }}
+                            </span>
+                            <strong style="font-size: 1.1rem; color: var(--text-primary);">{{ u.username }}</strong>
+                            <span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 0.5rem;">({{ u.email }})</span>
+                        </div>
+                        <div style="font-size: 0.82rem; color: var(--text-muted);">
+                            Registered: {{ u.created_at }} | Total Assessments: <strong>{{ u.reports|length }}</strong>
+                        </div>
+                    </div>
+
+                    {% if u.reports %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                                <thead>
+                                    <tr style="color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                                        <th style="padding: 0.6rem;">Report ID</th>
+                                        <th style="padding: 0.6rem;">Patient Name</th>
+                                        <th style="padding: 0.6rem;">Age / Gender</th>
+                                        <th style="padding: 0.6rem;">Diagnosis</th>
+                                        <th style="padding: 0.6rem;">Risk Score</th>
+                                        <th style="padding: 0.6rem;">Assessment Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in u.reports %}
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                            <td style="padding: 0.6rem; color: var(--text-muted);">#{{ r.id }}</td>
+                                            <td style="padding: 0.6rem; font-weight: 600; color: var(--text-primary);">{{ r.patient_name }}</td>
+                                            <td style="padding: 0.6rem; color: var(--text-secondary);">{{ r.age }} yrs / {{ r.gender }}</td>
+                                            <td style="padding: 0.6rem;">{{ r.diagnosis }}</td>
+                                            <td style="padding: 0.6rem; font-weight: 700; color: var(--accent-teal);">{{ r.final_probability_pct }}%</td>
+                                            <td style="padding: 0.6rem; color: var(--text-muted); font-size: 0.82rem;">{{ r.created_at }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; padding: 0.5rem 0;">
+                            No patient assessments completed under this User ID yet.
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-panel" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+            No patient user accounts registered yet.
+        </div>
+    {% endif %}
+</div>
+
+<!-- COMPONENT 2: DOCTORS REGISTER (Doctors & Assigned Patients) -->
+<div style="margin-bottom: 3rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; color: var(--text-primary);">
+            <i class="fa-solid fa-user-doctor" style="color: var(--accent-indigo);"></i> 2. Doctors Register (Physicians & Evaluated Patients)
+        </h3>
+        <span style="font-size: 0.82rem; color: var(--text-muted); background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo); padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 700;">
+            Grouped by Doctor Account
+        </span>
+    </div>
+
+    {% if doctor_groups %}
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            {% for d in doctor_groups %}
+                <div class="glass-panel" style="padding: 1.5rem; border-left: 4px solid var(--accent-indigo);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                        <div>
+                            <span style="background: rgba(99, 102, 241, 0.2); color: var(--accent-indigo); padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 700; font-size: 0.82rem; margin-right: 0.5rem;">
+                                DOCTOR ID #{{ d.id }}
+                            </span>
+                            <strong style="font-size: 1.15rem; color: var(--text-primary);">Dr. {{ d.username }}</strong>
+                            <span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 0.5rem;">({{ d.email }})</span>
+                        </div>
+                        <div style="font-size: 0.82rem; color: var(--text-muted);">
+                            Registered: {{ d.created_at }} | Patient Evaluations: <strong>{{ d.reports|length }}</strong>
+                        </div>
+                    </div>
+
+                    {% if d.reports %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                                <thead>
+                                    <tr style="color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                                        <th style="padding: 0.6rem;">Report ID</th>
+                                        <th style="padding: 0.6rem;">Evaluated Patient Name</th>
+                                        <th style="padding: 0.6rem;">Age / Gender</th>
+                                        <th style="padding: 0.6rem;">Clinical Diagnosis</th>
+                                        <th style="padding: 0.6rem;">Risk Index</th>
+                                        <th style="padding: 0.6rem;">Evaluation Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in d.reports %}
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                            <td style="padding: 0.6rem; color: var(--text-muted);">#{{ r.id }}</td>
+                                            <td style="padding: 0.6rem; font-weight: 600; color: var(--text-primary);">{{ r.patient_name }}</td>
+                                            <td style="padding: 0.6rem; color: var(--text-secondary);">{{ r.age }} yrs / {{ r.gender }}</td>
+                                            <td style="padding: 0.6rem;">{{ r.diagnosis }}</td>
+                                            <td style="padding: 0.6rem; font-weight: 700; color: var(--accent-indigo);">{{ r.final_probability_pct }}%</td>
+                                            <td style="padding: 0.6rem; color: var(--text-muted); font-size: 0.82rem;">{{ r.created_at }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; padding: 0.5rem 0;">
+                            No patient reports evaluated under Dr. {{ d.username }} yet.
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-panel" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+            No doctor accounts registered in the system yet.
+        </div>
+    {% endif %}
+</div>
+
+<!-- COMPONENT 3: MASTER SYSTEM PATIENTS REGISTER -->
+<div>
+    <h3 style="font-family: 'Outfit', sans-serif; margin-bottom: 1rem; font-size: 1.35rem;">
+        <i class="fa-solid fa-hospital-user" style="color: var(--accent-teal);"></i> 3. Master Patient Reports Register (All Records)
+    </h3>
+
+    {% if reports %}
+        <div class="glass-panel" style="padding: 1.5rem; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <th style="padding: 0.85rem;">Date & Time</th>
+                        <th style="padding: 0.85rem;">Patient Name</th>
+                        <th style="padding: 0.85rem;">Account User / Email</th>
+                        <th style="padding: 0.85rem;">Age / Gender</th>
+                        <th style="padding: 0.85rem;">Diagnosis</th>
+                        <th style="padding: 0.85rem;">Risk Index</th>
+                        <th style="padding: 0.85rem;">Status</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-{% else %}
-    <div class="glass-panel" style="padding: 3rem; text-align: center;">
-        <i class="fa-solid fa-clipboard-list" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-        <h3>No Patient Reports Logged In System</h3>
-        <p style="color: var(--text-secondary); margin-top: 0.5rem;">As users submit assessments, patient reports will appear here in real time.</p>
-    </div>
-{% endif %}
+                </thead>
+                <tbody>
+                    {% for r in reports %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">{{ r.created_at }}</td>
+                            <td style="padding: 1rem; font-weight: 700; color: var(--text-primary);">{{ r.patient_name }}</td>
+                            <td style="padding: 1rem; color: var(--accent-teal);">
+                                {% if r.account_username %}
+                                    {{ r.account_username }} <br><span style="font-size: 0.78rem; color: var(--text-muted);">({{ r.user_role|capitalize if r.user_role else 'User' }})</span>
+                                {% else %}
+                                    <span style="color: var(--text-muted); italic;">Guest / Anonymous</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem; color: var(--text-secondary);">{{ r.age }} yrs / {{ r.gender }}</td>
+                            <td style="padding: 1rem;">{{ r.diagnosis }}</td>
+                            <td style="padding: 1rem; font-weight: 800; color: var(--accent-teal);">{{ r.final_probability_pct }}%</td>
+                            <td style="padding: 1rem;">
+                                {% if r.risk_level == 'High' %}
+                                    <span style="background: rgba(244, 63, 94, 0.2); color: #fb7185; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">HIGH</span>
+                                {% elif r.risk_level == 'Moderate' %}
+                                    <span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">MODERATE</span>
+                                {% else %}
+                                    <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700;">LOW</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="glass-panel" style="padding: 3rem; text-align: center;">
+            <i class="fa-solid fa-clipboard-list" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+            <h3>No Patient Reports Logged In System</h3>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">As users submit assessments, patient reports will appear here in real time.</p>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}
