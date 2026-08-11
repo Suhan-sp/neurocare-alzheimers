@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Healthcare Portal Access - NeuroCare AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 2rem auto;">
+    <!-- Hero Title Header -->
+    <div class="hero-section" style="text-align: center; margin-bottom: 2.5rem;">
+        <h1 class="hero-title" style="font-size: 2.5rem;">NeuroCare Healthcare Portals</h1>
+        <p class="hero-subtitle" style="max-width: 650px; margin: 0.5rem auto 0 auto;">
+            Select your authorized portal to access non-invasive multimodal early prediction, clinical decision support, or platform administration.
+        </p>
+    </div>
+
+    {% if error %}
+        <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fb7185; padding: 1rem; border-radius: 10px; font-size: 0.95rem; margin-bottom: 2rem; text-align: center; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+        </div>
+    {% endif %}
+
+    <!-- 3 Separate Login Portals -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.75rem;">
+        
+        <!-- 1. Patient Portal Card -->
+        <div class="glass-panel" style="padding: 2.25rem; display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid var(--accent-teal);">
+            <div>
+                <div class="logo-icon" style="background: rgba(20, 184, 166, 0.15); color: var(--accent-teal); margin-bottom: 1.25rem; width: 56px; height: 56px; font-size: 1.6rem;">
+                    <i class="fa-solid fa-user-injured"></i>
+                </div>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; margin-bottom: 0.5rem; color: var(--text-primary);">Patient Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                    Take personal cognitive assessments, upload 16-channel EEG scans or voice recordings, and view diagnostic history reports.
+                </p>
+            </div>
+            <div>
+                <a href="/patient/login" class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #14b8a6, #0d9488); margin-bottom: 0.75rem;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Patient Login
+                </a>
+                <a href="/register" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem; padding: 0.5rem;">
+                    <i class="fa-solid fa-user-plus"></i> New Patient - Register
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. Doctor Portal Card -->
+        <div class="glass-panel" style="padding: 2.25rem; display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid var(--accent-indigo);">
+            <div>
+                <div class="logo-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo); margin-bottom: 1.25rem; width: 56px; height: 56px; font-size: 1.6rem;">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; margin-bottom: 0.5rem; color: var(--text-primary);">Doctor Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                    Clinical decision-support workspace for physicians and medical evaluators to analyze patient EEG signals and acoustic biomarkers.
+                </p>
+            </div>
+            <div>
+                <a href="/doctor/login" class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                    <i class="fa-solid fa-stethoscope"></i> Doctor Login
+                </a>
+                <div style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 0.75rem;">
+                    Pre-seeded: <code>Doctor1</code> / <code>doctor@1</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Admin Portal Card -->
+        <div class="glass-panel" style="padding: 2.25rem; display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid var(--accent-amber);">
+            <div>
+                <div class="logo-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); margin-bottom: 1.25rem; width: 56px; height: 56px; font-size: 1.6rem;">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; margin-bottom: 0.5rem; color: var(--text-primary);">Admin Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                    Platform administration dashboard for system analytics, clinician user auditing, and master patient report registers.
+                </p>
+            </div>
+            <div>
+                <a href="/admin/login" class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fa-solid fa-lock"></i> Admin Login
+                </a>
+                <div style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 0.75rem;">
+                    Credentials: <code>admin</code> / <code>admin@123</code>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

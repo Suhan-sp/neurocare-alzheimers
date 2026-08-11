@@ -28,7 +28,7 @@ def init_db():
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
-            role TEXT DEFAULT 'user',
+            role TEXT DEFAULT 'patient',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -55,21 +55,55 @@ def init_db():
 
     conn.commit()
 
-    # 3. Seed Default Admin Account if missing
+    # 3. Seed Default Admin Account (admin / admin@123)
+    admin_pass = generate_password_hash("admin@123")
     cursor.execute("SELECT * FROM users WHERE username = ?", ("admin",))
-    if not cursor.fetchone():
-        admin_pass = generate_password_hash("admin123")
+    existing_admin = cursor.fetchone()
+    if not existing_admin:
         cursor.execute(
             "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
             ("admin", "admin@neurocare.ai", admin_pass, "admin")
         )
         conn.commit()
-        logger.info("Default Admin account created: username='admin', password='admin123'")
+        logger.info("Default Admin account created: username='admin', password='admin@123'")
+    else:
+        # Update admin password hash to admin@123
+        cursor.execute("UPDATE users SET password_hash = ?, role = 'admin' WHERE username = ?", (admin_pass, "admin"))
+        conn.commit()
+
+    # 4. Seed Pre-configured Doctor Accounts (Doctor1 / doctor@1, Doctor2 / doctor@2)
+    doc1_pass = generate_password_hash("doctor@1")
+    cursor.execute("SELECT * FROM users WHERE username = ?", ("Doctor1",))
+    existing_doc1 = cursor.fetchone()
+    if not existing_doc1:
+        cursor.execute(
+            "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
+            ("Doctor1", "doctor1@neurocare.ai", doc1_pass, "doctor")
+        )
+        conn.commit()
+        logger.info("Doctor1 account created: username='Doctor1', password='doctor@1'")
+    else:
+        cursor.execute("UPDATE users SET password_hash = ?, role = 'doctor' WHERE username = ?", (doc1_pass, "Doctor1"))
+        conn.commit()
+
+    doc2_pass = generate_password_hash("doctor@2")
+    cursor.execute("SELECT * FROM users WHERE username = ?", ("Doctor2",))
+    existing_doc2 = cursor.fetchone()
+    if not existing_doc2:
+        cursor.execute(
+            "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
+            ("Doctor2", "doctor2@neurocare.ai", doc2_pass, "doctor")
+        )
+        conn.commit()
+        logger.info("Doctor2 account created: username='Doctor2', password='doctor@2'")
+    else:
+        cursor.execute("UPDATE users SET password_hash = ?, role = 'doctor' WHERE username = ?", (doc2_pass, "Doctor2"))
+        conn.commit()
 
     conn.close()
 
-def register_user(username, email, password, role='user'):
-    """Registers a new user account."""
+def register_user(username, email, password, role='patient'):
+    """Registers a new user account (default role: patient)."""
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -90,7 +124,7 @@ def register_user(username, email, password, role='user'):
         return False, str(e)
 
 def authenticate_user(username_or_email, password):
-    """Authenticates user or admin credentials."""
+    """Authenticates user, doctor, or admin credentials."""
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(

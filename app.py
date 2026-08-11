@@ -2,6 +2,7 @@
 NeuroCare AI - Master Flask Web Application (app.py)
 Multimodal Early Prediction Platform for Alzheimer's Disease
 Synthesizes Cognitive Profiling, 19-Channel EEG Signal Processing / Report Digitization, and Speech Acoustics.
+Role-Based Authentication Engine (Patient Portal, Doctor Portal, Admin Portal).
 """
 
 import os
@@ -9,7 +10,10 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from werkzeug.utils import secure_filename
 from predict import MultimodalPredictor
-from database import init_db, register_user, authenticate_user, save_patient_report, get_user_reports, get_all_reports_admin, get_admin_stats
+from database import (
+    init_db, register_user, authenticate_user, 
+    save_patient_report, get_user_reports, get_all_reports_admin, get_admin_stats
+)
 from utils.logger import logger
 
 app = Flask(__name__)
@@ -27,14 +31,28 @@ predictor = MultimodalPredictor()
 
 @app.route('/')
 def index():
-    """Renders main assessment dashboard. Requires mandatory login redirect."""
+    """
+    Root route:
+    If unauthenticated -> Render 3-Portal Landing Page (Patient Login, Doctor Login, Admin Login).
+    If authenticated -> Render Patient/Doctor Assessment Dashboard.
+    """
     if not session.get('user'):
-        return redirect(url_for('login'))
+        return render_template('portal_landing.html')
     return render_template('index.html')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    """Handles clinician / patient session authentication."""
+@app.route('/login')
+def login_redirect():
+    """Redirect legacy /login to Landing Portal Page."""
+    if session.get('user'):
+        return redirect(url_for('index'))
+    return render_template('portal_landing.html')
+
+# ==========================================
+# 1. PATIENT AUTHENTICATION PORTAL
+# ==========================================
+@app.route('/patient/login', methods=['GET', 'POST'])
+def patient_login():
+    """Patient Login Portal (/patient/login)."""
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
@@ -42,48 +60,139 @@ def login():
         user = authenticate_user(username, password)
         if user:
             session['user'] = user
-            logger.info(f"User '{username}' logged in successfully.")
+            logger.info(f"Patient '{username}' logged in successfully.")
             return redirect(url_for('index'))
         else:
-            return render_template('login.html', error="Invalid username or password.")
-    return render_template('login.html')
+            return render_template('patient_login.html', error="Invalid username or password.")
+    return render_template('patient_login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Handles new account creation."""
+    """Handles Patient Account Registration (Default role = patient)."""
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
 
-        success, msg_or_id = register_user(username, email, password, role='user')
+        success, msg_or_id = register_user(username, email, password, role='patient')
         if success:
             session['user'] = {
                 'id': msg_or_id,
                 'username': username,
                 'email': email,
-                'role': 'user',
+                'role': 'patient',
                 'name': username.capitalize()
             }
-            logger.info(f"Registered new user account '{username}'.")
+            logger.info(f"Registered new patient account '{username}'.")
             return redirect(url_for('index'))
         else:
             return render_template('register.html', error=msg_or_id)
     return render_template('register.html')
 
+# ==========================================
+# 2. DOCTOR AUTHENTICATION PORTAL
+# ==========================================
+@app.route('/doctor/login', methods=['GET', 'POST'])
+def doctor_login():
+    """
+    Doctor Login Portal (/doctor/login).
+    Pre-configured credentials: Doctor1 / doctor@1, Doctor2 / doctor@2.
+    Only role == 'doctor' is permitted.
+    """
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        user = authenticate_user(username, password)
+        if user:
+            # Check Role Security Constraint
+            if user.get('role') != 'doctor':
+                logger.warning(f"Unauthorized login attempt by non-doctor user '{username}' on Doctor Portal.")
+                return render_template('doctor_login.html', error="Access denied. This portal is only for doctors.")
+            
+            session['user'] = user
+            logger.info(f"Doctor '{username}' logged in successfully.")
+
+            # If Doctor1 logs in, navigate to Doctor Registration / Management
+            if username.lower() == 'doctor1':
+                return redirect(url_for('doctor_register'))
+            
+            return redirect(url_for('index'))
+        else:
+            return render_template('doctor_login.html', error="Invalid username or password.")
+    return render_template('doctor_login.html')
+
+@app.route('/doctor/register', methods=['GET', 'POST'])
+def doctor_register():
+    """Allows authenticated Doctor1 to register new Doctor accounts."""
+    if not session.get('user') or session['user'].get('role') != 'doctor':
+        return render_template('doctor_login.html', error="Access denied. This portal is only for doctors.")
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+
+        success, msg_or_id = register_user(username, email, password, role='doctor')
+        if success:
+            logger.info(f"Doctor1 registered new Doctor account '{username}'.")
+            return render_template('doctor_register.html', msg=f"Doctor account '{username}' registered successfully!")
+        else:
+            return render_template('doctor_register.html', error=msg_or_id)
+            
+    return render_template('doctor_register.html')
+
+# ==========================================
+# 3. ADMIN AUTHENTICATION PORTAL
+# ==========================================
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    """
+    Admin Login Portal (/admin/login).
+    Credentials: admin / admin@123.
+    Only role == 'admin' is permitted.
+    """
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        user = authenticate_user(username, password)
+        if user:
+            # Check Role Security Constraint
+            if user.get('role') != 'admin':
+                logger.warning(f"Unauthorized login attempt by non-admin user '{username}' on Admin Portal.")
+                return render_template('admin_login.html', error="Access denied. Administrator credentials required.")
+            
+            session['user'] = user
+            logger.info(f"Administrator '{username}' logged in successfully.")
+            return redirect(url_for('admin_dashboard'))
+        else:
+            return render_template('admin_login.html', error="Invalid username or password.")
+    return render_template('admin_login.html')
+
+@app.route('/admin')
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    """Admin dashboard listing all patient reports across clinicians (Role Protected)."""
+    if not session.get('user') or session['user'].get('role') != 'admin':
+        return render_template('admin_login.html', error="Access denied. Administrator credentials required.")
+    all_reports = get_all_reports_admin()
+    stats = get_admin_stats()
+    return render_template('admin_dashboard.html', stats=stats, reports=all_reports)
+
 @app.route('/logout')
 def logout():
-    """Logs out user session."""
+    """Logs out user session and redirects to Portal Landing Page."""
     user_name = session.get('user', {}).get('username', 'User')
     session.clear()
     logger.info(f"User '{user_name}' logged out.")
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 @app.route('/predict', methods=['POST'])
 def predict_route():
     """Executes prediction on strict user inputs without dummy fallbacks."""
     if not session.get('user'):
-        return redirect(url_for('login'))
+        return render_template('portal_landing.html', error="Please sign in to your authorized portal to run assessments.")
 
     try:
         patient_name = request.form.get('PatientName', '').strip() or 'Anonymous Patient'
@@ -159,25 +268,17 @@ def predict_route():
 def my_reports():
     """Displays historical assessment reports for logged-in user."""
     if not session.get('user'):
-        return redirect(url_for('login'))
+        return render_template('portal_landing.html', error="Please sign in to view your assessment reports.")
     user_id = session['user'].get('id', 1)
     reports = get_user_reports(user_id)
     return render_template('my_reports.html', reports=reports)
 
-@app.route('/admin')
-def admin_dashboard():
-    """Admin dashboard listing all patient reports across clinicians."""
-    if not session.get('user') or session['user'].get('role') != 'admin':
-        return redirect(url_for('index'))
-    all_reports = get_all_reports_admin()
-    stats = get_admin_stats()
-    return render_template('admin_dashboard.html', stats=stats, reports=all_reports)
-
 if __name__ == '__main__':
     from waitress import serve
     print("\n=================================================================")
-    print("  [SUCCESS] SERVER IS LIVE AND READY FOR USER INPUTS!")
-    print("  --> Open your web browser (Chrome/Edge/Firefox) and go to:")
-    print("      http://127.0.0.1:5000   or   http://localhost:5000")
+    print("  [SUCCESS] NEUROCARE MULTI-PORTAL SYSTEM IS LIVE!")
+    print("  --> Patient Portal:  http://localhost:5000/patient/login")
+    print("  --> Doctor Portal:   http://localhost:5000/doctor/login")
+    print("  --> Admin Portal:    http://localhost:5000/admin/login")
     print("=================================================================\n")
     serve(app, host='0.0.0.0', port=5000)

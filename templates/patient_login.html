@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Login - NeuroCare Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+    <div class="glass-panel" style="padding: 2.25rem; border-top: 4px solid var(--accent-teal);">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="logo-icon" style="margin: 0 auto 1rem auto; width: 52px; height: 52px; font-size: 1.5rem; background: rgba(20, 184, 166, 0.15); color: var(--accent-teal);">
+                <i class="fa-solid fa-user-injured"></i>
+            </div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem;">Patient Login</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.25rem;">Sign in to access personal cognitive health assessments</p>
+        </div>
+
+        {% if error %}
+            <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fb7185; padding: 0.85rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="/patient/login" method="POST">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="username">Patient Username or Email</label>
+                <input type="text" id="username" name="username" class="form-input" placeholder="e.g. patient101 or email@domain.com" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #14b8a6, #0d9488);">
+                <i class="fa-solid fa-right-to-bracket"></i> Login to Patient Portal
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">
+            New Patient? <a href="/register" style="color: var(--accent-teal); font-weight: 600; text-decoration: none;">Register Here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Register New Doctor - Doctor Management Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto;">
+    <div class="glass-panel" style="padding: 2.25rem; border-top: 4px solid var(--accent-indigo);">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="logo-icon" style="margin: 0 auto 1rem auto; width: 52px; height: 52px; font-size: 1.5rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo);">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem;">Register New Doctor</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.25rem;">Doctor1 Physician Management & Staff Onboarding</p>
+        </div>
+
+        {% if error %}
+            <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fb7185; padding: 0.85rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        {% if msg %}
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-emerald); color: #34d399; padding: 0.85rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-circle-check"></i> {{ msg }}
+            </div>
+        {% endif %}
+
+        <form action="/doctor/register" method="POST">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="username">Doctor Username</label>
+                <input type="text" id="username" name="username" class="form-input" placeholder="e.g. Doctor3" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="email">Medical Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="e.g. doctor3@neurocare.ai" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                <i class="fa-solid fa-user-plus"></i> Register Doctor Account
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <a href="/" class="btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
+                <i class="fa-solid fa-arrow-left"></i> Return to Assessment Portal
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

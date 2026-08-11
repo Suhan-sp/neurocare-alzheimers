@@ -24,26 +24,39 @@
             </div>
         </a>
         <div class="nav-links">
-            <a href="/" class="nav-link"><i class="fa-solid fa-clipboard-check"></i> Take Assessment</a>
-            
             {% if session.get('user') %}
+                <a href="/" class="nav-link"><i class="fa-solid fa-clipboard-check"></i> New Assessment</a>
                 <a href="/my-reports" class="nav-link"><i class="fa-solid fa-folder-user"></i> My Reports</a>
+                
+                {% if session.get('user').get('role') == 'doctor' %}
+                    {% if session.get('user').get('username', '').lower() == 'doctor1' %}
+                        <a href="/doctor/register" class="nav-link" style="color: var(--accent-indigo); font-weight: 700;">
+                            <i class="fa-solid fa-user-plus"></i> Add New Doctor
+                        </a>
+                    {% endif %}
+                {% endif %}
+
                 {% if session.get('user').get('role') == 'admin' %}
-                    <a href="/admin" class="nav-link" style="color: var(--accent-indigo); font-weight: 700;">
+                    <a href="/admin" class="nav-link" style="color: var(--accent-amber); font-weight: 700;">
                         <i class="fa-solid fa-user-shield"></i> Admin Dashboard
                     </a>
                 {% endif %}
+                
                 <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.06); padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.88rem;">
                     <i class="fa-solid fa-user-circle" style="color: var(--accent-teal);"></i>
                     <span>{{ session.get('user').get('username') }}</span>
+                    <span style="font-size: 0.75rem; background: rgba(20, 184, 166, 0.2); color: var(--accent-teal); padding: 0.1rem 0.4rem; border-radius: 6px; font-weight: 700; text-transform: uppercase;">
+                        {{ session.get('user').get('role', 'patient') }}
+                    </span>
                     <a href="/logout" style="color: var(--accent-rose); text-decoration: none; margin-left: 0.5rem; font-weight: 600;" title="Sign Out">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     </a>
                 </div>
             {% else %}
-                <a href="/login" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a>
-                <a href="/register" class="btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.88rem;">
-                    <i class="fa-solid fa-user-plus"></i> Register
+                <a href="/patient/login" class="nav-link"><i class="fa-solid fa-user-injured"></i> Patient Login</a>
+                <a href="/doctor/login" class="nav-link"><i class="fa-solid fa-user-doctor"></i> Doctor Login</a>
+                <a href="/admin/login" class="btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.88rem;">
+                    <i class="fa-solid fa-user-shield"></i> Admin Login
                 </a>
             {% endif %}
         </div>
@@ -56,7 +69,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <p>&copy; 2026 NeuroCare AI Patient Health Portal | Designed for Easy Patient & Clinical Assessment</p>
+        <p>&copy; 2026 NeuroCare AI Patient Health Portal | Designed for Patient & Clinical Assessment</p>
     </footer>
 
     <!-- Interactive JavaScript -->

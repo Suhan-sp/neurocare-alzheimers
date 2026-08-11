@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Login - NeuroCare Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+    <div class="glass-panel" style="padding: 2.25rem; border-top: 4px solid var(--accent-indigo);">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="logo-icon" style="margin: 0 auto 1rem auto; width: 52px; height: 52px; font-size: 1.5rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo);">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem;">Doctor Login Portal</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.25rem;">Physician & Clinical Evaluator Authentication Workspace</p>
+        </div>
+
+        {% if error %}
+            <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fb7185; padding: 0.85rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="/doctor/login" method="POST">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="username">Doctor Username or Email</label>
+                <input type="text" id="username" name="username" class="form-input" placeholder="e.g. Doctor1 or doctor1@neurocare.ai" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                <i class="fa-solid fa-stethoscope"></i> Login to Doctor Portal
+            </button>
+        </form>
+
+        <div style="margin-top: 1.5rem; background: rgba(10, 15, 29, 0.4); padding: 0.85rem; border-radius: 8px; font-size: 0.82rem; color: var(--text-muted); border: 1px solid var(--border-color); text-align: center;">
+            <strong style="color: var(--text-secondary);">Pre-configured Accounts:</strong><br>
+            Username: <code>Doctor1</code> | Password: <code>doctor@1</code><br>
+            Username: <code>Doctor2</code> | Password: <code>doctor@2</code>
+        </div>
+    </div>
+</div>
+{% endblock %}
