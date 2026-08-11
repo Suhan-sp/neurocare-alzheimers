@@ -112,21 +112,33 @@ def doctor_login():
             
             session['user'] = user
             logger.info(f"Doctor '{username}' logged in successfully.")
-
-            # If Doctor1 logs in, navigate to Doctor Registration / Management
-            if username.lower() == 'doctor1':
-                return redirect(url_for('doctor_register'))
-            
             return redirect(url_for('index'))
         else:
             return render_template('doctor_login.html', error="Invalid username or password.")
     return render_template('doctor_login.html')
 
+@app.route('/doctor/authorize', methods=['GET', 'POST'])
+def doctor_authorize():
+    """Requires Doctor1 authorization password to grant access for New Doctor registration."""
+    if request.method == 'POST':
+        auth_pass = request.form.get('auth_password', '').strip()
+        doc1_user = authenticate_user('Doctor1', auth_pass)
+        if doc1_user and doc1_user.get('role') == 'doctor':
+            session['doctor1_authorized'] = True
+            logger.info("Doctor1 authorization password verified successfully. Access granted to New Doctor registration.")
+            return redirect(url_for('doctor_register'))
+        else:
+            return render_template('doctor_authorize.html', error="Invalid Doctor1 Authorization Password. Authorization failed.")
+    return render_template('doctor_authorize.html')
+
 @app.route('/doctor/register', methods=['GET', 'POST'])
 def doctor_register():
-    """Allows authenticated Doctor1 to register new Doctor accounts."""
-    if not session.get('user') or session['user'].get('role') != 'doctor':
-        return render_template('doctor_login.html', error="Access denied. This portal is only for doctors.")
+    """Allows registration of a new doctor if Doctor1 password was verified or Doctor1 is logged in."""
+    is_doc1_logged_in = session.get('user') and session['user'].get('role') == 'doctor' and session['user'].get('username', '').lower() == 'doctor1'
+    is_authorized = session.get('doctor1_authorized', False)
+
+    if not is_doc1_logged_in and not is_authorized:
+        return redirect(url_for('doctor_authorize'))
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -135,8 +147,8 @@ def doctor_register():
 
         success, msg_or_id = register_user(username, email, password, role='doctor')
         if success:
-            logger.info(f"Doctor1 registered new Doctor account '{username}'.")
-            return render_template('doctor_register.html', msg=f"Doctor account '{username}' registered successfully!")
+            logger.info(f"Registered new Doctor account '{username}'.")
+            return render_template('doctor_register.html', msg=f"New Doctor account '{username}' registered successfully!")
         else:
             return render_template('doctor_register.html', error=msg_or_id)
             

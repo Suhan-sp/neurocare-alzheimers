@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Authorization - NeuroCare Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+    <div class="glass-panel" style="padding: 2.25rem; border-top: 4px solid var(--accent-indigo);">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="logo-icon" style="margin: 0 auto 1rem auto; width: 52px; height: 52px; font-size: 1.5rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo);">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem;">Doctor Authorization</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.25rem;">Enter Doctor1 Authorization Password to register a new doctor account.</p>
+        </div>
+
+        {% if error %}
+            <div style="background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-rose); color: #fb7185; padding: 0.85rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="/doctor/authorize" method="POST">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="auth_password">Doctor1 Authorization Password</label>
+                <input type="password" id="auth_password" name="auth_password" class="form-input" placeholder="Enter Doctor1 password (doctor@1)" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                <i class="fa-solid fa-shield-check"></i> Authorize & Continue
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <a href="/doctor/login" style="color: var(--text-secondary); font-size: 0.88rem; text-decoration: none;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Doctor Login
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
