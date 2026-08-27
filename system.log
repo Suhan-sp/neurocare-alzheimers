@@ -2893,3 +2893,67 @@
 [2026-08-11 20:00:51] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
 [2026-08-11 20:00:52] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
 [2026-08-11 20:01:10] [INFO] [alzheimer_system]: Administrator 'admin' logged in successfully.
+[2026-08-11 20:01:42] [INFO] [alzheimer_system]: Administrator 'admin' logged in successfully.
+[2026-08-11 20:02:59] [INFO] [alzheimer_system]: User 'admin' logged out.
+[2026-08-27 18:51:43] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-27 18:51:47] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-27 18:52:25] [INFO] [alzheimer_system]: Administrator 'admin' logged in successfully.
+[2026-08-27 18:53:06] [INFO] [alzheimer_system]: User 'admin' logged out.
+[2026-08-27 19:08:10] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-27 19:08:11] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-27 19:10:45] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-08-27 19:10:46] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]:   STARTING COGNITIVE MODEL TRAINING PIPELINE    
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: Loading Cognitive Dataset from cognitive dataset/alzheimer.csv
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: Starting Cognitive preprocessing fit_transform...
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: Saved Cognitive preprocessor to saved_models\cognitive_preprocessor.pkl
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9677
+[2026-08-27 19:12:23] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-08-27 19:12:28] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.9491 | F1: 0.9465 | AUC: 0.9646
+[2026-08-27 19:12:28] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-08-27 19:12:29] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.9437 | F1: 0.9412 | AUC: 0.9621
+[2026-08-27 19:12:29] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-08-27 19:12:31] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9619
+[2026-08-27 19:12:31] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-08-27 19:12:35] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.9544 | F1: 0.9524 | AUC: 0.9626
+[2026-08-27 19:12:35] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'Logistic Regression' with ROC-AUC: 0.9677
+[2026-08-27 19:12:35] [INFO] [alzheimer_system]: Saved best ML model (Logistic Regression) to saved_models\best_cognitive_model.pkl
+[2026-08-27 19:12:35] [INFO] [alzheimer_system]: Generated SHAP explainability plots successfully.
+[2026-08-27 19:12:35] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:12:35] [INFO] [alzheimer_system]:   COGNITIVE TRAINING COMPLETE: Best = Logistic Regression
+[2026-08-27 19:12:35] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:13:04] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:13:04] [INFO] [alzheimer_system]:     STARTING CLINICAL EEG MODEL TRAINING PIPELINE 
+[2026-08-27 19:13:04] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:13:04] [INFO] [alzheimer_system]: Loading 88 human subjects from 'eeg new dataset' with true ground-truth labels...
+[2026-08-27 19:13:27] [INFO] [alzheimer_system]: Extracted EEG Dataset: 1320 total clinical epochs across 361 features.
+[2026-08-27 19:13:27] [INFO] [alzheimer_system]: Ground-Truth Class Balance -> Healthy (0): 435 epochs, Alzheimer's (1): 885 epochs
+[2026-08-27 19:13:27] [INFO] [alzheimer_system]: Saved Healthy Control sample EEG to EEG dataset/single_patient_EEG.csv (status=0)
+[2026-08-27 19:13:28] [INFO] [alzheimer_system]: Saved Alzheimer's Patient sample EEG to EEG dataset/alzheimer_patient_EEG.csv (status=1)
+[2026-08-27 19:13:28] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-08-27 19:13:28] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-08-27 19:13:29] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.7061 | F1: 0.7861 | AUC: 0.7364
+[2026-08-27 19:13:29] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-08-27 19:14:41] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.7174 | F1: 0.8235 | AUC: 0.7386
+[2026-08-27 19:14:41] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-08-27 19:15:20] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.7750 | F1: 0.8468 | AUC: 0.8203
+[2026-08-27 19:15:20] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-08-27 19:16:26] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.7402 | F1: 0.8284 | AUC: 0.7679
+[2026-08-27 19:16:26] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-08-27 19:16:53] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.7598 | F1: 0.8357 | AUC: 0.8156
+[2026-08-27 19:16:53] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'XGBoost' with ROC-AUC: 0.8203
+[2026-08-27 19:16:53] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN
+[2026-08-27 19:17:12] [INFO] [alzheimer_system]: [CNN] Val Acc: 0.7235 | Val F1: 0.7967 | Val AUC: 0.7452
+[2026-08-27 19:17:12] [INFO] [alzheimer_system]: Training Deep Learning model architecture: LSTM
+[2026-08-27 19:17:48] [INFO] [alzheimer_system]: [LSTM] Val Acc: 0.6705 | Val F1: 0.8027 | Val AUC: 0.5514
+[2026-08-27 19:17:48] [INFO] [alzheimer_system]: Training Deep Learning model architecture: CNN-LSTM
+[2026-08-27 19:18:09] [INFO] [alzheimer_system]: [CNN-LSTM] Val Acc: 0.6705 | Val F1: 0.8027 | Val AUC: 0.5447
+[2026-08-27 19:18:09] [INFO] [alzheimer_system]: CLINICAL EEG SELECTION: Winner is 'ML (XGBoost)' with ROC-AUC: 0.8203
+[2026-08-27 19:18:09] [INFO] [alzheimer_system]: Saved best EEG model (ML (XGBoost)) to saved_models/best_eeg_model.pkl
+[2026-08-27 19:18:10] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:18:10] [INFO] [alzheimer_system]:   EEG TRAINING COMPLETE: Best = ML (XGBoost) (AUC: 0.8203)
+[2026-08-27 19:18:10] [INFO] [alzheimer_system]: ==================================================
