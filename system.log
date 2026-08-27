@@ -2957,3 +2957,8 @@
 [2026-08-27 19:18:10] [INFO] [alzheimer_system]: ==================================================
 [2026-08-27 19:18:10] [INFO] [alzheimer_system]:   EEG TRAINING COMPLETE: Best = ML (XGBoost) (AUC: 0.8203)
 [2026-08-27 19:18:10] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:20:55] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:20:55] [INFO] [alzheimer_system]:     STARTING HIGH-ACCURACY SPEECH MODEL PIPELINE  
+[2026-08-27 19:20:55] [INFO] [alzheimer_system]: ==================================================
+[2026-08-27 19:20:55] [INFO] [alzheimer_system]: Loaded ALL 591 clinical audio recordings with exact ground truth labels.
+[2026-08-27 19:20:55] [INFO] [alzheimer_system]: Extracting 80+ acoustic features across all 591 recordings...
