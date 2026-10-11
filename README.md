@@ -1,7 +1,7 @@
 ---
 title: NeuroCare AI
 emoji: 🧠
-colorFrom: teal
+colorFrom: blue
 colorTo: indigo
 sdk: gradio
 app_port: 7860
