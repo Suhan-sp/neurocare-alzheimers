@@ -1,10 +1,10 @@
 ---
-title: NeuroCare AI
+title: NeuroCare01
 emoji: 🧠
 colorFrom: blue
 colorTo: indigo
 sdk: gradio
-app_port: 7860
+app_file: app.py
 pinned: false
 ---
 
