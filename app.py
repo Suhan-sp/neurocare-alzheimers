@@ -34,12 +34,17 @@ predictor = MultimodalPredictor()
 def index():
     """
     Root route:
-    If unauthenticated -> Render 2-Portal Landing Page (Patient Login, Doctor Login).
-    If authenticated -> Render Patient/Doctor Assessment Dashboard.
+    If unauthenticated -> Patient Portal is first! (Redirects to /patient/login)
+    If authenticated -> Render Patient Assessment Dashboard.
     """
     if not session.get('user'):
-        return render_template('portal_landing.html')
+        return redirect(url_for('patient_login'))
     return render_template('index.html')
+
+@app.route('/portal-select')
+def portal_select():
+    """Alternative route for landing portal selection page."""
+    return render_template('portal_landing.html')
 
 @app.route('/login')
 def login_redirect():
@@ -301,10 +306,11 @@ def my_reports():
 
 if __name__ == '__main__':
     from waitress import serve
+    port = int(os.environ.get('PORT', 7860))
     print("\n=================================================================")
-    print("  [SUCCESS] NEUROCARE MULTI-PORTAL SYSTEM IS LIVE!")
-    print("  --> Patient Portal:  http://localhost:5000/patient/login")
-    print("  --> Doctor Portal:   http://localhost:5000/doctor/login")
-    print("  --> Admin Portal:    http://localhost:5000/admin/login")
+    print(f"  [SUCCESS] NEUROCARE MULTI-PORTAL SYSTEM IS LIVE ON PORT {port}!")
+    print(f"  --> Patient Portal (Default): http://0.0.0.0:{port}/")
+    print(f"  --> Doctor Portal:            http://0.0.0.0:{port}/doctor/login")
+    print(f"  --> Admin Portal:             http://0.0.0.0:{port}/admin/login")
     print("=================================================================\n")
-    serve(app, host='0.0.0.0', port=5000)
+    serve(app, host='0.0.0.0', port=port)

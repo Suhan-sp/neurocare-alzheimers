@@ -1,3 +1,13 @@
+---
+title: NeuroCare AI
+emoji: 🧠
+colorFrom: teal
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Multimodal Alzheimer's Disease Prediction System
 
 A complete, production-quality **Multimodal Alzheimer's Disease Prediction & Explainability System** designed for academic research, final-year engineering projects, and research publication.
