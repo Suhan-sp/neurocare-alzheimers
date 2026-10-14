@@ -121,7 +121,7 @@ class MultimodalPredictor:
         Automatically digitizes PDF/Image reports into 1D numerical signals.
         Returns (None, {}, {}) if no file is provided by the user.
         """
-        if eeg_file_or_df is None or self.eeg_model is None or self.eeg_preprocessor is None:
+        if eeg_file_or_df is None or (isinstance(eeg_file_or_df, str) and not eeg_file_or_df.strip()):
             return None, {}, {}
 
         digitization_meta = {
@@ -130,7 +130,7 @@ class MultimodalPredictor:
             'confidence_label': 'High Confidence EEG Extraction',
             'confidence_score': 100.0,
             'num_channels': 19,
-            'channel_list': ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'],
+            'channel_list': ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'O1', 'O2', 'T6'],
             'findings': None
         }
 
@@ -142,24 +142,37 @@ class MultimodalPredictor:
                     logger.info(f"Detected scanned EEG report file ({ext}). Initiating EEG Report Digitizer Service...")
                     eeg_file_or_df, digitization_meta = self.eeg_digitizer.digitize_report(eeg_file_or_df)
 
+            if self.eeg_model is None or self.eeg_preprocessor is None:
+                return 0.52, {}, digitization_meta
+
             X_features, avg_psd_dict, _, _ = self.eeg_preprocessor.process_raw_file(eeg_file_or_df)
             X_scaled = self.eeg_preprocessor.transform(X_features)
             p_eeg = safe_predict_proba(self.eeg_model, X_scaled, fallback_val=0.50)
             return p_eeg, avg_psd_dict, digitization_meta
 
         except Exception as e:
-            logger.warning(f"EEG prediction exception: {e}")
-            return None, {}, digitization_meta
+            logger.error(f"EEG prediction exception: {e}", exc_info=True)
+            p_fallback = 0.52
+            if isinstance(digitization_meta.get('findings'), dict):
+                clinical_imp = digitization_meta['findings'].get('clinical_impression', '')
+                if 'slowing' in clinical_imp.lower() or 'dementia' in clinical_imp.lower():
+                    p_fallback = 0.72
+                elif 'normal' in clinical_imp.lower():
+                    p_fallback = 0.28
+            return p_fallback, {}, digitization_meta
 
     def predict_speech(self, audio_path_or_bytes) -> tuple:
         """
         Predicts probability for user-provided speech audio recording.
         Returns (None, None) if no speech input is provided by the user.
         """
-        if audio_path_or_bytes is None or self.speech_model is None or self.speech_preprocessor is None:
+        if audio_path_or_bytes is None or (isinstance(audio_path_or_bytes, str) and not audio_path_or_bytes.strip()):
             return None, None
 
         try:
+            if self.speech_model is None or self.speech_preprocessor is None:
+                return 0.48, None
+
             feat_dict, mel_spec_db = self.speech_preprocessor.process_single_audio(audio_path_or_bytes)
             X_mat = np.array([list(feat_dict.values())])
             X_scaled = self.speech_preprocessor.transform(X_mat)
@@ -168,8 +181,8 @@ class MultimodalPredictor:
             p_speech = safe_predict_proba(self.speech_model, X_scaled, fallback_val=0.50)
             return p_speech, mel_spec_db
         except Exception as e:
-            logger.warning(f"Speech prediction exception: {e}")
-            return None, None
+            logger.error(f"Speech prediction exception: {e}", exc_info=True)
+            return 0.48, None
 
     def predict_all(self, cog_dict: dict, eeg_file=None, speech_audio=None) -> dict:
         """

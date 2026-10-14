@@ -31,14 +31,23 @@ def get_easy_reader():
     if easy_reader is None:
         try:
             import easyocr
-            easy_reader = easyocr.Reader(['en'], gpu=False)
-        except Exception:
+            # Prevent blocking download during live HTTP request if models are not already cached
+            model_dir = os.path.expanduser(os.path.join('~', '.EasyOCR', 'model'))
+            detector_path = os.path.join(model_dir, 'craft_mlt_25k.pth')
+            recognizer_path = os.path.join(model_dir, 'english_g2.pth')
+            if os.path.exists(detector_path) and os.path.exists(recognizer_path):
+                easy_reader = easyocr.Reader(['en'], gpu=False, download_enabled=False)
+            else:
+                logger.info("EasyOCR weights not found on disk. Utilizing PyMuPDF and vision heuristics for instant inference.")
+                easy_reader = False
+        except Exception as e:
+            logger.info(f"EasyOCR reader note: {e}")
             easy_reader = False
     return easy_reader if easy_reader is not False else None
 
 from utils.logger import logger
 
-STANDARD_CHANNELS = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2']
+STANDARD_CHANNELS = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'Cz', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'O1', 'O2', 'T6']
 
 class EEGReportDigitizer:
     """

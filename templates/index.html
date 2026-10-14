@@ -148,6 +148,13 @@
         .loader-step-item.completed {
             color: #34d399;
         }
+
+        .file-dropzone.drag-over {
+            border-color: var(--accent-teal) !important;
+            background: rgba(14, 165, 233, 0.15) !important;
+            transform: scale(1.015);
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.35);
+        }
     </style>
 </head>
 <body>
@@ -217,7 +224,7 @@
         {% endif %}
 
         <!-- Assessment Input Form -->
-        <form action="/predict" method="POST" enctype="multipart/form-data" class="assessment-form" onsubmit="showLoadingOverlay()">
+        <form id="assessmentForm" action="/predict" method="POST" enctype="multipart/form-data" class="assessment-form" onsubmit="handleFormSubmit(event)">
             
             <!-- Patient Demographics Section -->
             <div class="glass-panel" style="padding: 1.75rem; margin-bottom: 1.5rem;">
@@ -313,7 +320,7 @@
                     <i class="fa-solid fa-wave-square dropzone-icon" style="color: var(--accent-teal);"></i>
                     <div style="font-weight: 600; margin-bottom: 0.25rem;">Click or Drag & Drop EEG File / Scanned Hospital Report</div>
                     <div style="font-size: 0.8rem; color: var(--text-secondary);">Supported Formats: .edf, .csv, .pdf, .jpg, .jpeg, .png (Max 50MB)</div>
-                    <input type="file" id="eegFile" name="eegFile" accept=".csv,.edf,.pdf,.jpg,.jpeg,.png" style="display: none;" onchange="updateFileName(this, 'eegFileName')">
+                    <input type="file" id="eegFile" name="eegFile" accept=".csv,.edf,.pdf,.jpg,.jpeg,.png" style="display: none;" onclick="event.stopPropagation()">
                 </div>
                 <div id="eegFileName" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--accent-teal); font-weight: 500;"></div>
             </div>
@@ -325,7 +332,7 @@
                     <h2>3. Speech & Voice Audio Recording</h2>
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                    Record 5 seconds of live voice audio or upload a WAV recording. If omitted, the assessment runs without speech audio.
+                    Record 5 seconds of live voice audio or upload a WAV/WebM recording. If omitted, the assessment runs without speech audio.
                 </p>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center;">
@@ -342,9 +349,9 @@
                     <!-- File Upload Box -->
                     <div class="file-dropzone" id="speechDropzone" onclick="document.getElementById('speechFile').click()" style="padding: 1.5rem;">
                         <i class="fa-solid fa-file-audio dropzone-icon" style="color: var(--accent-emerald);"></i>
-                        <div style="font-weight: 600; margin-bottom: 0.25rem;">Upload WAV Audio File</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Supported Formats: .wav, .webm, .mp3</div>
-                        <input type="file" id="speechFile" name="speechFile" accept=".wav,.webm,.mp3,.ogg" style="display: none;" onchange="updateFileName(this, 'speechFileName')">
+                        <div style="font-weight: 600; margin-bottom: 0.25rem;">Upload Audio File</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Supported Formats: .wav, .webm, .mp3, .ogg</div>
+                        <input type="file" id="speechFile" name="speechFile" accept=".wav,.webm,.mp3,.ogg,.m4a" style="display: none;" onclick="event.stopPropagation()">
                     </div>
                 </div>
                 <div id="speechFileName" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--accent-emerald); font-weight: 500;"></div>
@@ -358,12 +365,71 @@
     </div>
 
     <script>
-        function updateFileName(input, targetId) {
-            const fileNameDiv = document.getElementById(targetId);
-            if (input.files && input.files[0]) {
-                fileNameDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Selected File: ' + input.files[0].name;
-            }
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordTimerInterval = null;
+        let recordSeconds = 0;
+        window.recordedAudioBlob = null;
+        window.selectedEEGFile = null;
+        window.selectedSpeechFile = null;
+
+        function setupDropzone(dropzoneId, fileInputId, fileNameId, fileTypeKey) {
+            const dropzone = document.getElementById(dropzoneId);
+            const fileInput = document.getElementById(fileInputId);
+            const fileNameDiv = document.getElementById(fileNameId);
+            if (!dropzone || !fileInput) return;
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('drag-over');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (fileTypeKey === 'eeg') {
+                        window.selectedEEGFile = file;
+                    } else if (fileTypeKey === 'speech') {
+                        window.selectedSpeechFile = file;
+                    }
+                    try {
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        fileInput.files = dt.files;
+                    } catch (err) {}
+                    fileNameDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Selected File: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+                }
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files && fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    if (fileTypeKey === 'eeg') {
+                        window.selectedEEGFile = file;
+                    } else if (fileTypeKey === 'speech') {
+                        window.selectedSpeechFile = file;
+                    }
+                    fileNameDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Selected File: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+                }
+            });
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDropzone('eegDropzone', 'eegFile', 'eegFileName', 'eeg');
+            setupDropzone('speechDropzone', 'speechFile', 'speechFileName', 'speech');
+        });
 
         function showLoadingOverlay() {
             const overlay = document.getElementById('loadingOverlay');
@@ -395,13 +461,17 @@
 
                     if (index > 0) {
                         const prevItem = document.getElementById(steps[index - 1].id);
-                        prevItem.className = 'loader-step-item completed';
-                        prevItem.querySelector('i').className = 'fa-solid fa-circle-check';
+                        if (prevItem) {
+                            prevItem.className = 'loader-step-item completed';
+                            prevItem.querySelector('i').className = 'fa-solid fa-circle-check';
+                        }
                     }
 
                     const currItem = document.getElementById(step.id);
-                    currItem.className = 'loader-step-item active';
-                    currItem.querySelector('i').className = 'fa-solid fa-circle-notch fa-spin';
+                    if (currItem) {
+                        currItem.className = 'loader-step-item active';
+                        currItem.querySelector('i').className = 'fa-solid fa-circle-notch fa-spin';
+                    }
 
                     index++;
                     setTimeout(updateStep, 1400);
@@ -411,53 +481,146 @@
             updateStep();
         }
 
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
+        function stopRecordingAsync() {
+            return new Promise((resolve) => {
+                if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                    isRecording = false;
+                    clearInterval(recordTimerInterval);
+                    resolve();
+                    return;
+                }
+                mediaRecorder.onstop = () => {
+                    const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                    const audioBlob = new Blob(audioChunks, { type: mimeType });
+                    window.recordedAudioBlob = audioBlob;
+                    
+                    const playback = document.getElementById('audioPlayback');
+                    playback.src = URL.createObjectURL(audioBlob);
+                    playback.style.display = 'block';
+
+                    try {
+                        const file = new File([audioBlob], "recorded_speech.wav", { type: mimeType });
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        document.getElementById('speechFile').files = dt.files;
+                    } catch (e) {}
+
+                    document.getElementById('speechFileName').innerHTML = '<i class="fa-solid fa-circle-check"></i> Recorded Live Speech Attached (' + (audioBlob.size / 1024).toFixed(1) + ' KB)';
+                    isRecording = false;
+                    clearInterval(recordTimerInterval);
+                    resolve();
+                };
+                try {
+                    mediaRecorder.stop();
+                    if (mediaRecorder.stream) {
+                        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                    }
+                } catch (e) {
+                    isRecording = false;
+                    clearInterval(recordTimerInterval);
+                    resolve();
+                }
+            });
+        }
 
         async function toggleRecording() {
             const recordBtn = document.getElementById('recordBtn');
             const timerDiv = document.getElementById('recordTimer');
-            const playback = document.getElementById('audioPlayback');
 
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    const options = {};
+                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                        options.mimeType = 'audio/webm;codecs=opus';
+                    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        options.mimeType = 'audio/webm';
+                    } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+                        options.mimeType = 'audio/ogg';
+                    }
+                    mediaRecorder = new MediaRecorder(stream, options);
                     audioChunks = [];
 
                     mediaRecorder.ondataavailable = event => {
-                        audioChunks.push(event.data);
+                        if (event.data && event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
                     };
 
-                    mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        playback.src = audioUrl;
-                        playback.style.display = 'block';
-
-                        // Attach blob to form input via DataTransfer
-                        const file = new File([audioBlob], "recorded_speech.wav", { type: "audio/wav" });
-                        const container = new DataTransfer();
-                        container.items.add(file);
-                        document.getElementById('speechFile').files = container.files;
-                        document.getElementById('speechFileName').innerHTML = '<i class="fa-solid fa-circle-check"></i> Recorded Live Speech Attached';
-                    };
-
-                    mediaRecorder.start();
+                    mediaRecorder.start(250); // Record in 250ms chunks
                     isRecording = true;
+                    recordSeconds = 0;
                     recordBtn.classList.add('recording');
-                    recordBtn.innerHTML = '<i class="fa-solid fa-square"></i>';
-                    timerDiv.innerHTML = '<span style="color: var(--accent-rose); font-weight: bold;">🔴 Recording live voice... Click to stop.</span>';
+                    recordBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+                    timerDiv.innerHTML = '<span style="color: var(--accent-rose); font-weight: bold;">🔴 Recording: 0s (Speak clearly, click to stop)</span>';
+
+                    clearInterval(recordTimerInterval);
+                    recordTimerInterval = setInterval(() => {
+                        recordSeconds++;
+                        timerDiv.innerHTML = '<span style="color: var(--accent-rose); font-weight: bold;">🔴 Recording: ' + recordSeconds + 's (Speak clearly, click to stop)</span>';
+                        if (recordSeconds >= 10) {
+                            toggleRecording();
+                        }
+                    }, 1000);
                 } catch (err) {
-                    alert('Microphone access denied or not available in your browser.');
+                    alert('Microphone access denied or not available in your browser: ' + err.message);
                 }
             } else {
-                mediaRecorder.stop();
-                isRecording = false;
                 recordBtn.classList.remove('recording');
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-                timerDiv.innerHTML = 'Live voice recording ready.';
+                timerDiv.innerHTML = '<span style="color: var(--accent-emerald); font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Voice recording complete & ready.</span>';
+                await stopRecordingAsync();
+            }
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('assessmentForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // If user is currently recording, stop it and wait for blob before proceeding
+            if (isRecording) {
+                const recordBtn = document.getElementById('recordBtn');
+                recordBtn.classList.remove('recording');
+                recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                document.getElementById('recordTimer').innerHTML = '<span>Finalizing audio recording...</span>';
+                await stopRecordingAsync();
+            }
+
+            showLoadingOverlay();
+
+            const formData = new FormData(form);
+
+            // Ensure dropped or selected EEG file is present in formData
+            if (window.selectedEEGFile) {
+                formData.set('eegFile', window.selectedEEGFile, window.selectedEEGFile.name);
+            }
+
+            // Ensure recorded speech or dropped audio file is present in formData
+            if (window.recordedAudioBlob && (!window.selectedSpeechFile || !document.getElementById('speechFile').files.length)) {
+                formData.set('speechFile', window.recordedAudioBlob, 'recorded_speech.wav');
+            } else if (window.selectedSpeechFile) {
+                formData.set('speechFile', window.selectedSpeechFile, window.selectedSpeechFile.name);
+            }
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const html = await response.text();
+                document.open();
+                document.write(html);
+                document.close();
+                window.history.pushState({}, '', '/predict');
+            } catch (err) {
+                console.error('Fetch submit error, falling back to form.submit():', err);
+                form.submit();
             }
         }
     </script>

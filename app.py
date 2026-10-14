@@ -267,20 +267,26 @@ def predict_route():
 
         # 2. Parse Optional User EEG File (EDF/CSV signal OR scanned PDF/Image report)
         eeg_file_path = None
-        if 'eegFile' in request.files and request.files['eegFile'].filename != '':
-            file = request.files['eegFile']
-            eeg_file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(eeg_file_path)
-            logger.info(f"Saved patient EEG file to {eeg_file_path}")
+        for key in ['eegFile', 'eeg_file', 'eeg']:
+            if key in request.files and request.files[key].filename != '':
+                file = request.files[key]
+                s_name = secure_filename(file.filename) or 'patient_eeg_report.png'
+                eeg_file_path = os.path.join(app.config['UPLOAD_FOLDER'], s_name)
+                file.save(eeg_file_path)
+                logger.info(f"Saved patient EEG file to {eeg_file_path} ({os.path.getsize(eeg_file_path)} bytes)")
+                break
 
         # 3. Parse Optional User Speech Audio File or Mic Stream (None if not provided)
         speech_audio = None
-        if 'speechFile' in request.files and request.files['speechFile'].filename != '':
-            file = request.files['speechFile']
-            speech_file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(speech_file_path)
-            speech_audio = speech_file_path
-            logger.info(f"Saved patient speech audio file to {speech_file_path}")
+        for key in ['speechFile', 'recordedAudio', 'audioBlob', 'speech_file', 'audio']:
+            if key in request.files and request.files[key].filename != '':
+                file = request.files[key]
+                s_name = secure_filename(file.filename) or 'recorded_speech.wav'
+                speech_file_path = os.path.join(app.config['UPLOAD_FOLDER'], s_name)
+                file.save(speech_file_path)
+                speech_audio = speech_file_path
+                logger.info(f"Saved patient speech audio file to {speech_file_path} ({os.path.getsize(speech_file_path)} bytes)")
+                break
 
         # Execute End-to-End Prediction
         res = predictor.predict_all(cog_dict=cog_dict, eeg_file=eeg_file_path, speech_audio=speech_audio)

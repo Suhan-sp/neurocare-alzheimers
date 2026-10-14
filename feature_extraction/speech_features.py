@@ -85,16 +85,24 @@ def extract_speech_features(y: np.ndarray, sr: int = 16000) -> tuple:
     features['spectral_rolloff_mean'] = float(np.mean(spec_rolloff))
     features['spectral_flatness_mean'] = float(np.mean(spec_flatness))
 
-    for i in range(spec_contrast.shape[0]):
-        features[f'spec_contrast_{i+1}_mean'] = float(np.mean(spec_contrast[i]))
+    # 5b. Spectral Contrast (ensure 7 bands)
+    for i in range(7):
+        if i < spec_contrast.shape[0]:
+            features[f'spec_contrast_{i+1}_mean'] = float(np.mean(spec_contrast[i]))
+        else:
+            features[f'spec_contrast_{i+1}_mean'] = 0.0
 
-    # 6. Tonnetz (Harmonic Pitch Profiles)
+    # 6. Tonnetz (Harmonic Pitch Profiles - ensure exactly 6 dimensions)
     try:
         tonnetz = librosa.feature.tonnetz(y=y, sr=sr)
-        for i in range(tonnetz.shape[0]):
-            features[f'tonnetz_{i+1}_mean'] = float(np.mean(tonnetz[i]))
+        for i in range(6):
+            if i < tonnetz.shape[0]:
+                features[f'tonnetz_{i+1}_mean'] = float(np.mean(tonnetz[i]))
+            else:
+                features[f'tonnetz_{i+1}_mean'] = 0.0
     except Exception:
-        pass
+        for i in range(6):
+            features[f'tonnetz_{i+1}_mean'] = 0.0
 
     # 7. Chroma Features (12 pitch classes)
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
