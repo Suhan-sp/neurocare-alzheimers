@@ -191,12 +191,18 @@ class EEGReportDigitizer:
         t_samples = 2000 # 4.0 seconds at 500Hz
         
         signals = np.zeros((t_samples, self.num_channels))
-        detected_labels_count = 0
+        valid_channels_count = 0
 
         for ch_idx in range(self.num_channels):
             y_start = int(ch_idx * strip_h)
             y_end = int((ch_idx + 1) * strip_h)
             strip = binary_skel[y_start:y_end, :]
+            orig_strip = binary[y_start:y_end, :]
+
+            # Measure waveform metrics to detect genuine EEG patterns vs random pictures
+            cols_with_pixels = sum(1 for col in range(w) if np.any(strip[:, col] > 0))
+            col_coverage = cols_with_pixels / max(1, w)
+            pixel_density = float(np.mean(orig_strip > 0))
 
             # Column-wise peak extraction (pixel y-position)
             curve_y = []
@@ -209,6 +215,7 @@ class EEGReportDigitizer:
                     curve_y.append(strip_h / 2.0)
 
             curve_arr = np.array(curve_y)
+            curve_std = float(np.std(curve_arr))
             
             # Center and scale amplitude (invert y so higher pixel = higher voltage)
             curve_centered = -(curve_arr - np.mean(curve_arr))
@@ -218,7 +225,7 @@ class EEGReportDigitizer:
             t_new = np.linspace(0, 1, t_samples)
             sig_resampled = np.interp(t_new, t_orig, curve_centered)
 
-            # Standardize amplitude variance to realistic EEG microvolts ($\mu V$)
+            # Standardize amplitude variance to realistic EEG microvolts (uV)
             std_val = np.std(sig_resampled)
             if std_val > 1e-5:
                 sig_resampled = (sig_resampled / std_val) * 15.0 # Scale to ~15uV std
@@ -228,13 +235,26 @@ class EEGReportDigitizer:
                 sig_resampled = 10.0 * np.sin(2 * np.pi * (8.5 + 0.2 * ch_idx) * t_vec) + 3.0 * np.random.randn(t_samples)
 
             signals[:, ch_idx] = sig_resampled
-            detected_labels_count += 1
+
+            # Real EEG channel validation criteria:
+            # - Continuous curve coverage across at least 45% of width
+            # - Line density between 0.03 and 0.32 (thin signal traces, not solid black blobs)
+            # - Visible vertical wave oscillation (std >= 3.5 pixels)
+            if col_coverage >= 0.45 and 0.03 <= pixel_density <= 0.32 and curve_std >= 3.5:
+                valid_channels_count += 1
 
         df_digitized = pd.DataFrame(signals, columns=self.channel_names)
 
-        # Confidence Estimation
-        confidence_score = float(min(98.5, 65.0 + (detected_labels_count / self.num_channels) * 30.0))
-        confidence_label = "High Confidence EEG Extraction" if confidence_score >= 75.0 else "Low Confidence EEG Extraction"
+        # Dynamic Confidence Estimation based on genuine EEG pattern detection
+        if valid_channels_count >= 14:
+            confidence_score = float(min(98.5, 75.0 + (valid_channels_count / self.num_channels) * 23.0))
+            confidence_label = "High Confidence EEG Extraction"
+        elif valid_channels_count >= 7:
+            confidence_score = float(min(74.0, 50.0 + ((valid_channels_count - 7) / 7.0) * 20.0))
+            confidence_label = "Medium Confidence EEG Extraction"
+        else:
+            confidence_score = float(max(15.0, min(42.0, 18.0 + (valid_channels_count / self.num_channels) * 35.0)))
+            confidence_label = "Low Confidence (Non-EEG / Random Image Detected)"
 
         return df_digitized, confidence_label, round(confidence_score, 1)
 
