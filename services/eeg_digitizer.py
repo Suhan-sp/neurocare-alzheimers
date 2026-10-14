@@ -25,11 +25,16 @@ try:
 except ImportError:
     skeletonize = None
 
-try:
-    import easyocr
-    easy_reader = easyocr.Reader(['en'], gpu=False)
-except Exception:
-    easy_reader = None
+easy_reader = None
+def get_easy_reader():
+    global easy_reader
+    if easy_reader is None:
+        try:
+            import easyocr
+            easy_reader = easyocr.Reader(['en'], gpu=False)
+        except Exception:
+            easy_reader = False
+    return easy_reader if easy_reader is not False else None
 
 from utils.logger import logger
 
@@ -109,10 +114,11 @@ class EEGReportDigitizer:
             except Exception as e:
                 logger.warning(f"PyMuPDF text extraction note: {e}")
 
-        # 2. EasyOCR Extraction on First Image Page
-        if easy_reader is not None and images:
+        # 2. EasyOCR Extraction on First Image Page (if available)
+        reader = get_easy_reader()
+        if reader is not None and images:
             try:
-                ocr_results = easy_reader.readtext(images[0], detail=0)
+                ocr_results = reader.readtext(images[0], detail=0)
                 extracted_text_lines.extend(ocr_results)
             except Exception as e:
                 logger.warning(f"EasyOCR note: {e}")
