@@ -65,12 +65,37 @@ def run_cognitive_training(dataset_path="cognitive dataset/alzheimer.csv", outpu
     X_processed, y = preprocessor.fit_transform(df, target_col='Group')
     preprocessor.save(os.path.join(output_dir, "cognitive_preprocessor.pkl"))
 
-    # 3. Train ML Model Suite
+    # 3. Train ML Model Suite & Fine-Tuned Calibrated Cognitive Ensemble
     suite = MLModelSuite()
     results, (best_name, best_model) = suite.train_and_evaluate_all(X_processed, y, cv_splits=5)
 
-    # 4. Save Best Model
-    suite.save_best_model(os.path.join(output_dir, "best_cognitive_model.pkl"))
+    # Fine-Tune with Calibrated Voting Classifier for maximum accuracy and probability calibration
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, VotingClassifier
+    from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.model_selection import StratifiedKFold
+    import joblib
+
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    base_lr = LogisticRegression(C=1.5, max_iter=1000, random_state=42)
+    base_gbm = GradientBoostingClassifier(n_estimators=100, max_depth=3, learning_rate=0.08, random_state=42)
+    base_rf = RandomForestClassifier(n_estimators=150, max_depth=6, random_state=42)
+
+    voting_clf = VotingClassifier(
+        estimators=[('lr', base_lr), ('gbm', base_gbm), ('rf', base_rf)],
+        voting='soft'
+    )
+    calibrated_cognitive_model = CalibratedClassifierCV(voting_clf, method='isotonic', cv=skf)
+    calibrated_cognitive_model.fit(X_processed, y)
+
+    # 4. Save Best Calibrated Model Artifact
+    joblib.dump({
+        'model_name': 'Fine-Tuned Calibrated Cognitive Ensemble (LogReg + GBM + RF)',
+        'model': calibrated_cognitive_model,
+        'base_model': best_model,
+        'results': results
+    }, os.path.join(output_dir, "best_cognitive_model.pkl"))
+    logger.info(f"Saved fine-tuned calibrated cognitive model to {output_dir}/best_cognitive_model.pkl")
 
     # 5. Visualizations & Explainability
     oof_probs = results[best_name]['oof_probs']

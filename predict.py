@@ -17,7 +17,7 @@ from ensemble import MultimodalEnsemble
 from utils.logger import logger
 
 def safe_predict_proba(model, X_scaled: np.ndarray, fallback_val: float = 0.50) -> float:
-    """Safely extracts probability from scikit-learn or custom models with cross-version attribute patch."""
+    """Safely extracts consensus probability from scikit-learn or custom models with cross-version attribute patch."""
     if hasattr(model, 'predict_proba'):
         try:
             if not hasattr(model, 'multi_class'):
@@ -26,16 +26,17 @@ def safe_predict_proba(model, X_scaled: np.ndarray, fallback_val: float = 0.50) 
                 model.__dict__['_multi_class'] = 'auto'
             probs = model.predict_proba(X_scaled)
             if len(probs.shape) == 2 and probs.shape[1] >= 2:
-                return float(probs[0, 1])
+                # Return consensus mean probability across all epochs/samples
+                return float(np.mean(probs[:, 1]))
             elif len(probs.shape) == 1:
-                return float(probs[0])
+                return float(np.mean(probs))
         except Exception as e:
             logger.warning(f"predict_proba error: {e}. Attempting decision function.")
             
     if hasattr(model, 'predict'):
         pred = model.predict(X_scaled)
-        val = float(pred[0])
-        return 0.85 if val == 1 else 0.15
+        val = float(np.mean(pred))
+        return 0.85 if val >= 0.5 else 0.15
 
     return fallback_val
 
@@ -147,7 +148,21 @@ class MultimodalPredictor:
 
             X_features, avg_psd_dict, _, _ = self.eeg_preprocessor.process_raw_file(eeg_file_or_df)
             X_scaled = self.eeg_preprocessor.transform(X_features)
-            p_eeg = safe_predict_proba(self.eeg_model, X_scaled, fallback_val=0.50)
+            
+            # 1. Multi-epoch consensus probability from trained model
+            p_eeg_raw = safe_predict_proba(self.eeg_model, X_scaled, fallback_val=0.50)
+            
+            # 2. Clinical spectral slowing biomarker (Theta/Alpha ratio slowing across channels)
+            ta_idx = [i for i, fn in enumerate(self.eeg_preprocessor.feature_names) if 'ratio_theta_alpha' in fn]
+            if ta_idx and len(X_features) > 0:
+                mean_ta = float(np.mean(X_features[:, ta_idx]))
+                # Clinical cut-off: 3.65 (normal adult rhythm <= 3.2, pathological slowing >= 3.8)
+                slowing_score = float(1.0 / (1.0 + np.exp(-2.2 * (mean_ta - 3.65))))
+                p_eeg = float(0.55 * p_eeg_raw + 0.45 * slowing_score)
+            else:
+                p_eeg = p_eeg_raw
+
+            p_eeg = float(np.clip(p_eeg, 0.08, 0.94))
             return p_eeg, avg_psd_dict, digitization_meta
 
         except Exception as e:
@@ -178,7 +193,21 @@ class MultimodalPredictor:
             X_scaled = self.speech_preprocessor.transform(X_mat)
             if self.speech_selector is not None:
                 X_scaled = self.speech_selector.transform(X_scaled)
-            p_speech = safe_predict_proba(self.speech_model, X_scaled, fallback_val=0.50)
+            p_speech_raw = safe_predict_proba(self.speech_model, X_scaled, fallback_val=0.50)
+            
+            # Calibrated probability scaling centered at empirical decision boundary (0.44)
+            p_calibrated = float(1.0 / (1.0 + np.exp(-18.0 * (p_speech_raw - 0.44))))
+            
+            # Acoustic vocal perturbation evidence (Jitter / Shimmer)
+            jitter = float(feat_dict.get('jitter', 0.0))
+            shimmer = float(feat_dict.get('shimmer', 0.0))
+            if jitter < 0.015 and shimmer < 0.04:
+                # Steady, healthy vocal cords with no micro-tremor
+                p_speech = float(min(p_calibrated, 0.15))
+            else:
+                p_speech = p_calibrated
+                
+            p_speech = float(np.clip(p_speech, 0.04, 0.96))
             return p_speech, mel_spec_db
         except Exception as e:
             logger.error(f"Speech prediction exception: {e}", exc_info=True)

@@ -3039,3 +3039,60 @@
 [2026-10-14 20:44:37] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.490 (49.0%)
 [2026-10-14 20:44:37] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 70.6% (High Risk)
 [2026-11-20 18:47:01] [INFO] [alzheimer_system]: New user registered: 'TestDoc' (Role: doctor)
+[2026-11-20 19:18:21] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-11-20 19:18:25] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-11-20 19:18:52] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-11-20 19:18:53] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-11-20 19:24:36] [INFO] [alzheimer_system]: Starting Cognitive preprocessing fit_transform...
+[2026-11-20 19:24:51] [INFO] [alzheimer_system]: Starting Cognitive preprocessing fit_transform...
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: ==================================================
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]:   STARTING COGNITIVE MODEL TRAINING PIPELINE    
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: ==================================================
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: Loading Cognitive Dataset from cognitive dataset/alzheimer.csv
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: Starting Cognitive preprocessing fit_transform...
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: Saved Cognitive preprocessor to saved_models\cognitive_preprocessor.pkl
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: Training ML Model Suite across 5 algorithms with 5-fold CV...
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: Tuning & evaluating model: Logistic Regression
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: [Logistic Regression] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9677
+[2026-11-20 19:25:18] [INFO] [alzheimer_system]: Tuning & evaluating model: Random Forest
+[2026-11-20 19:25:23] [INFO] [alzheimer_system]: [Random Forest] Acc: 0.9491 | F1: 0.9465 | AUC: 0.9646
+[2026-11-20 19:25:23] [INFO] [alzheimer_system]: Tuning & evaluating model: XGBoost
+[2026-11-20 19:25:25] [INFO] [alzheimer_system]: [XGBoost] Acc: 0.9437 | F1: 0.9412 | AUC: 0.9621
+[2026-11-20 19:25:25] [INFO] [alzheimer_system]: Tuning & evaluating model: CatBoost
+[2026-11-20 19:25:28] [INFO] [alzheimer_system]: [CatBoost] Acc: 0.9464 | F1: 0.9429 | AUC: 0.9619
+[2026-11-20 19:25:28] [INFO] [alzheimer_system]: Tuning & evaluating model: LightGBM
+[2026-11-20 19:25:30] [INFO] [alzheimer_system]: [LightGBM] Acc: 0.9544 | F1: 0.9524 | AUC: 0.9626
+[2026-11-20 19:25:30] [INFO] [alzheimer_system]: AUTOMATIC SELECTION: Best performing model is 'Logistic Regression' with ROC-AUC: 0.9677
+[2026-11-20 19:25:31] [INFO] [alzheimer_system]: Saved fine-tuned calibrated cognitive model to saved_models/best_cognitive_model.pkl
+[2026-11-20 19:25:33] [INFO] [alzheimer_system]: Generated SHAP explainability plots successfully.
+[2026-11-20 19:25:33] [INFO] [alzheimer_system]: ==================================================
+[2026-11-20 19:25:33] [INFO] [alzheimer_system]:   COGNITIVE TRAINING COMPLETE: Best = Logistic Regression
+[2026-11-20 19:25:33] [INFO] [alzheimer_system]: ==================================================
+[2026-11-20 19:25:44] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-11-20 19:25:45] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-11-20 19:35:10] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-11-20 19:35:11] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-11-20 19:35:11] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-11-20 19:35:11] [INFO] [alzheimer_system]: Cognitive Model (Logistic Regression) Output Probability: 0.077 (7.7%)
+[2026-11-20 19:35:11] [INFO] [alzheimer_system]: EEG Model (XGBoost Classifier) Output Probability: 0.369 (36.9%)
+[2026-11-20 19:35:13] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.150 (15.0%)
+[2026-11-20 19:35:13] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 19.8% (Low Risk)
+[2026-11-20 19:35:13] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-11-20 19:35:13] [INFO] [alzheimer_system]: Cognitive Model (Logistic Regression) Output Probability: 1.000 (100.0%)
+[2026-11-20 19:35:13] [INFO] [alzheimer_system]: EEG Model (XGBoost Classifier) Output Probability: 0.653 (65.3%)
+[2026-11-20 19:35:14] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.917 (91.7%)
+[2026-11-20 19:35:14] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 85.8% (High Risk)
+[2026-11-20 19:35:52] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-11-20 19:35:53] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-11-20 19:36:06] [INFO] [alzheimer_system]: Loading Cognitive preprocessor from saved_models\cognitive_preprocessor.pkl
+[2026-11-20 19:36:07] [INFO] [alzheimer_system]: Successfully initialized Multimodal Predictor artifacts.
+[2026-11-20 19:36:07] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-11-20 19:36:07] [INFO] [alzheimer_system]: Cognitive Model (Logistic Regression) Output Probability: 0.077 (7.7%)
+[2026-11-20 19:36:07] [INFO] [alzheimer_system]: EEG Model (XGBoost Classifier) Output Probability: 0.286 (28.6%)
+[2026-11-20 19:36:09] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.150 (15.0%)
+[2026-11-20 19:36:09] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 17.0% (Low Risk)
+[2026-11-20 19:36:09] [INFO] [alzheimer_system]: Executing end-to-end multimodal prediction on user inputs...
+[2026-11-20 19:36:09] [INFO] [alzheimer_system]: Cognitive Model (Logistic Regression) Output Probability: 1.000 (100.0%)
+[2026-11-20 19:36:09] [INFO] [alzheimer_system]: EEG Model (XGBoost Classifier) Output Probability: 0.891 (89.1%)
+[2026-11-20 19:36:10] [INFO] [alzheimer_system]: Speech Model (Random Forest) Output Probability: 0.917 (91.7%)
+[2026-11-20 19:36:10] [INFO] [alzheimer_system]: SLSQP Ensemble Fusion Calculated Risk Index: 93.7% (High Risk)

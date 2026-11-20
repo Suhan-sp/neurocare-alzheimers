@@ -95,9 +95,20 @@ class MultimodalEnsemble:
             diagnosis = "Alzheimer's Disease (High Risk)"
             is_alzheimers = True
 
-        # Confidence Score (Distance from uncertain 0.5 boundary)
-        confidence = float(np.abs(p_final - 0.5) * 2.0 * 100.0)
-        confidence = max(50.0, min(99.9, confidence))
+        # Confidence Score (Distance from uncertain 0.5 boundary with cross-modal concordance boost)
+        base_confidence = float(np.abs(p_final - 0.5) * 2.0 * 100.0)
+        
+        # Cross-modality concordant agreement boost when multiple channels agree
+        if len(active_probs) > 1:
+            probs_arr = np.array(active_probs)
+            spread = float(np.std(probs_arr))
+            all_ad = np.all(probs_arr >= 0.50)
+            all_healthy = np.all(probs_arr <= 0.50)
+            if (all_ad or all_healthy) and spread < 0.25:
+                agreement_factor = (0.25 - spread) / 0.25
+                base_confidence += 15.0 * agreement_factor
+
+        confidence = float(np.clip(base_confidence, 55.0, 98.8))
 
         # Modality Contributions
         total_active_p = np.sum(active_probs) + 1e-12
