@@ -8,7 +8,8 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.logger import logger
 
-DB_PATH = "neurocare.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "neurocare.db")
 
 def get_db_connection():
     """Establishes connection to local SQLite database with dictionary row factory."""
@@ -55,9 +56,9 @@ def init_db():
 
     conn.commit()
 
-    # 3. Seed Default Admin Account (admin / admin@123)
+    # 3. Seed Default Admin Account (admin / admin@123) if not already existing
     admin_pass = generate_password_hash("admin@123")
-    cursor.execute("SELECT * FROM users WHERE username = ?", ("admin",))
+    cursor.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", ("admin",))
     existing_admin = cursor.fetchone()
     if not existing_admin:
         cursor.execute(
@@ -66,13 +67,10 @@ def init_db():
         )
         conn.commit()
         logger.info("Default Admin account created: username='admin', password='admin@123'")
-    else:
-        cursor.execute("UPDATE users SET password_hash = ?, role = 'admin' WHERE username = ?", (admin_pass, "admin"))
-        conn.commit()
 
-    # 4. Seed Pre-configured Doctor Accounts (Doctor1 / doctor@1, Doctor2 / doctor@2)
+    # 4. Seed Pre-configured Doctor Accounts if not already existing
     doc1_pass = generate_password_hash("doctor@1")
-    cursor.execute("SELECT * FROM users WHERE username = ?", ("Doctor1",))
+    cursor.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", ("Doctor1",))
     existing_doc1 = cursor.fetchone()
     if not existing_doc1:
         cursor.execute(
@@ -81,12 +79,9 @@ def init_db():
         )
         conn.commit()
         logger.info("Doctor1 account created: username='Doctor1', password='doctor@1'")
-    else:
-        cursor.execute("UPDATE users SET password_hash = ?, role = 'doctor' WHERE username = ?", (doc1_pass, "Doctor1"))
-        conn.commit()
 
     doc2_pass = generate_password_hash("doctor@2")
-    cursor.execute("SELECT * FROM users WHERE username = ?", ("Doctor2",))
+    cursor.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", ("Doctor2",))
     existing_doc2 = cursor.fetchone()
     if not existing_doc2:
         cursor.execute(
@@ -95,9 +90,29 @@ def init_db():
         )
         conn.commit()
         logger.info("Doctor2 account created: username='Doctor2', password='doctor@2'")
-    else:
-        cursor.execute("UPDATE users SET password_hash = ?, role = 'doctor' WHERE username = ?", (doc2_pass, "Doctor2"))
+
+    # 5. Seed Pre-configured Patient Accounts if not already existing
+    patient_pass = generate_password_hash("patient@123")
+    cursor.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", ("patient",))
+    existing_patient = cursor.fetchone()
+    if not existing_patient:
+        cursor.execute(
+            "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
+            ("patient", "patient@neurocare.ai", patient_pass, "patient")
+        )
         conn.commit()
+        logger.info("Patient account created: username='patient', password='patient@123'")
+
+    suhan_pass = generate_password_hash("suhan@123")
+    cursor.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", ("suhan",))
+    existing_suhan = cursor.fetchone()
+    if not existing_suhan:
+        cursor.execute(
+            "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
+            ("suhan", "suhan@neurocare.ai", suhan_pass, "patient")
+        )
+        conn.commit()
+        logger.info("Patient account created: username='suhan', password='suhan@123'")
 
     conn.close()
 
@@ -106,14 +121,32 @@ def register_user(username, email, password, role='patient'):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        pass_hash = generate_password_hash(password)
+        clean_user = username.strip()
+        clean_email = email.strip()
+        clean_pwd = password.strip()
+
+        # Check if username or email already exists (case-insensitively)
+        cursor.execute(
+            "SELECT id, username, email FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)",
+            (clean_user, clean_email)
+        )
+        existing = cursor.fetchone()
+        if existing:
+            conn.close()
+            if existing['username'].lower() == clean_user.lower():
+                return False, f"Username '{clean_user}' is already registered. Please choose another or sign in."
+            else:
+                return False, f"Email '{clean_email}' is already registered. Please sign in or use another email."
+
+        pass_hash = generate_password_hash(clean_pwd)
         cursor.execute(
             "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
-            (username, email, pass_hash, role)
+            (clean_user, clean_email, pass_hash, role)
         )
         conn.commit()
         user_id = cursor.lastrowid
         conn.close()
+        logger.info(f"New user registered: '{clean_user}' (Role: {role})")
         return True, user_id
     except sqlite3.IntegrityError:
         conn.close()
@@ -122,20 +155,40 @@ def register_user(username, email, password, role='patient'):
         conn.close()
         return False, str(e)
 
-def authenticate_user(username_or_email, password):
-    """Authenticates user, doctor, or admin credentials."""
+def verify_user_credentials(username_or_email, password):
+    """
+    Validates user credentials against SQLite database with case-insensitive username/email matching.
+    Returns (user_dict, error_message). If successful, error_message is None.
+    """
+    if not username_or_email or not str(username_or_email).strip():
+        return None, "Please enter your username or email."
+    if not password or not str(password).strip():
+        return None, "Please enter your password."
+
+    clean_identifier = str(username_or_email).strip()
+    clean_password = str(password).strip()
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT * FROM users WHERE username = ? OR email = ?",
-        (username_or_email, username_or_email)
+        "SELECT * FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)",
+        (clean_identifier, clean_identifier)
     )
     user = cursor.fetchone()
     conn.close()
 
-    if user and check_password_hash(user['password_hash'], password):
-        return dict(user)
-    return None
+    if not user:
+        return None, f"User account '{clean_identifier}' does not exist. Please check your username/email or register."
+
+    if not check_password_hash(user['password_hash'], clean_password):
+        return None, "Incorrect password. Please verify your password and try again."
+
+    return dict(user), None
+
+def authenticate_user(username_or_email, password):
+    """Authenticates user, doctor, or admin credentials."""
+    user, _ = verify_user_credentials(username_or_email, password)
+    return user
 
 def save_patient_report(user_id, patient_name, *args, **kwargs):
     """Saves a generated patient report into the database."""

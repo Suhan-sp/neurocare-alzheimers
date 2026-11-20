@@ -22,12 +22,20 @@
         <form action="/register" method="POST">
             <div class="form-group" style="margin-bottom: 1.1rem;">
                 <label class="form-label" for="username">Username</label>
-                <input type="text" id="username" name="username" class="form-input" placeholder="e.g. dr_john" required>
+                <input type="text" id="username" name="username" class="form-input" placeholder="e.g. johndoe" required>
             </div>
 
             <div class="form-group" style="margin-bottom: 1.1rem;">
                 <label class="form-label" for="email">Email Address</label>
                 <input type="email" id="email" name="email" class="form-input" placeholder="e.g. john@clinic.com" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+                <label class="form-label" for="role">Account Type</label>
+                <select id="role" name="role" class="form-input" style="background: rgba(10, 15, 29, 0.75); color: var(--text-primary); cursor: pointer;">
+                    <option value="patient" selected>Patient (Personal Health Evaluation)</option>
+                    <option value="doctor">Doctor / Clinician (Clinical Decision Support)</option>
+                </select>
             </div>
 
             <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -41,7 +49,10 @@
         </form>
 
         <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">
-            Already have an account? <a href="/login" style="color: var(--accent-teal); font-weight: 600; text-decoration: none;">Sign In Here</a>
+            Already have an account? <br>
+            <a href="/patient/login" style="color: var(--accent-teal); font-weight: 600; text-decoration: none; margin-right: 1rem;">Patient Login</a>
+            <span style="opacity: 0.4;">|</span>
+            <a href="/doctor/login" style="color: var(--accent-indigo); font-weight: 600; text-decoration: none; margin-left: 1rem;">Doctor Login</a>
         </div>
     </div>
 </div>

@@ -6,12 +6,12 @@ Role-Based Authentication Engine (Patient Portal, Doctor Portal, Admin Portal).
 """
 
 import os
-import sqlite3
+from datetime import timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from werkzeug.utils import secure_filename
 from predict import MultimodalPredictor
 from database import (
-    init_db, register_user, authenticate_user, 
+    init_db, register_user, authenticate_user, verify_user_credentials,
     save_patient_report, get_user_reports, get_all_reports_admin, 
     get_admin_stats, get_patients_grouped_by_user, get_doctors_with_patients
 )
@@ -19,6 +19,7 @@ from utils.logger import logger
 
 app = Flask(__name__)
 app.secret_key = 'neurocare_secret_key_prod_2026'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Configure upload directory
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
@@ -63,33 +64,38 @@ def patient_login():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
-        user = authenticate_user(username, password)
+        user, err_msg = verify_user_credentials(username, password)
         if user:
+            session.permanent = True
             session['user'] = user
-            logger.info(f"Patient '{username}' logged in successfully.")
+            logger.info(f"User '{username}' logged in successfully.")
             return redirect(url_for('index'))
         else:
-            return render_template('patient_login.html', error="Invalid username or password.")
+            return render_template('patient_login.html', error=err_msg)
     return render_template('patient_login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Handles Patient Account Registration (Default role = patient)."""
+    """Handles Account Registration (Patient or Doctor)."""
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
+        role = request.form.get('role', 'patient').strip().lower()
+        if role not in ['patient', 'doctor']:
+            role = 'patient'
 
-        success, msg_or_id = register_user(username, email, password, role='patient')
+        success, msg_or_id = register_user(username, email, password, role=role)
         if success:
+            session.permanent = True
             session['user'] = {
                 'id': msg_or_id,
                 'username': username,
                 'email': email,
-                'role': 'patient',
+                'role': role,
                 'name': username.capitalize()
             }
-            logger.info(f"Registered new patient account '{username}'.")
+            logger.info(f"Registered new {role} account '{username}'.")
             return redirect(url_for('index'))
         else:
             return render_template('register.html', error=msg_or_id)
@@ -102,25 +108,25 @@ def register():
 def doctor_login():
     """
     Doctor Login Portal (/doctor/login).
-    Pre-configured credentials: Doctor1 / doctor@1, Doctor2 / doctor@2.
     Only role == 'doctor' is permitted.
     """
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
-        user = authenticate_user(username, password)
+        user, err_msg = verify_user_credentials(username, password)
         if user:
             # Check Role Security Constraint
             if user.get('role') != 'doctor':
-                logger.warning(f"Unauthorized login attempt by non-doctor user '{username}' on Doctor Portal.")
-                return render_template('doctor_login.html', error="Access denied. This portal is only for doctors.")
+                logger.warning(f"Unauthorized login attempt by {user.get('role')} user '{username}' on Doctor Portal.")
+                return render_template('doctor_login.html', error=f"Account '{user.get('username')}' is registered as a {user.get('role')}. The Doctor Portal is reserved for doctors. Please log in through the Patient Login.")
             
+            session.permanent = True
             session['user'] = user
             logger.info(f"Doctor '{username}' logged in successfully.")
             return redirect(url_for('index'))
         else:
-            return render_template('doctor_login.html', error="Invalid username or password.")
+            return render_template('doctor_login.html', error=err_msg)
     return render_template('doctor_login.html')
 
 # ==========================================
@@ -130,25 +136,25 @@ def doctor_login():
 def admin_login():
     """
     Admin Login Portal (/admin/login).
-    Credentials: admin / admin@123.
     Only role == 'admin' is permitted.
     """
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
-        user = authenticate_user(username, password)
+        user, err_msg = verify_user_credentials(username, password)
         if user:
             # Check Role Security Constraint
             if user.get('role') != 'admin':
                 logger.warning(f"Unauthorized login attempt by non-admin user '{username}' on Admin Portal.")
                 return render_template('admin_login.html', error="Access denied. Administrator credentials required.")
             
+            session.permanent = True
             session['user'] = user
             logger.info(f"Administrator '{username}' logged in successfully.")
             return redirect(url_for('admin_dashboard'))
         else:
-            return render_template('admin_login.html', error="Invalid username or password.")
+            return render_template('admin_login.html', error=err_msg)
     return render_template('admin_login.html')
 
 @app.route('/admin')
